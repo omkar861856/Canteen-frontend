@@ -1,0 +1,58 @@
+/* Blinking dot animation */
+.blinking-dot {
+    width: 15px;
+    height: 15px;
+    background-color: #f39c12; /* Yellow for "Preparing" */
+    border-radius: 50%;
+    animation: blink 1.5s infinite ease-in-out;
+    margin-right: 8px; /* Space between the dot and text */
+    position: relative;
+    z-index: 1; /* Ensure the dot appears above other content */
+  }
+  
+  /* Blinking effect */
+  @keyframes blink {
+    0% {
+      opacity: 0.1;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.1;
+    }
+  }
+  
+  /* Container for the blinking dot and text */
+  .order-status-container {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.8); /* Optional background for contrast */
+    padding: 5px 10px;
+    border-radius: 10px;
+    z-index: 2; /* Ensure this is on top */
+  }
+
+
+
+  /* Blinking animation for TimelineDot */
+@keyframes blink {
+    0% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.2;
+    }
+  }
+  
+  /* Apply blinking animation to TimelineDot */
+  .blinking-dot {
+    animation: blink 1s infinite ease-in-out;
+    border-radius: 50%; /* Ensure it's circular */
+  }

@@ -1,0 +1,16 @@
+#layout-header{
+    margin: 1rem;
+}
+
+#layout-children{
+    margin:1.2rem
+}
+
+#setting-nav{
+    display: flex;
+    justify-content: space-between;
+}
+
+.icons-right{
+    display: flex;
+}
