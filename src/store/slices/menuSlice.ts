@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { apiUrl } from '../../Layout';
 
 
 export interface InventoryItem {
@@ -30,7 +31,7 @@ const initialState: InventoryState = {
 
 // Thunk to fetch data
 export const fetchInventory = createAsyncThunk<InventoryItem[]>('menu/fetchOrders', async () => {
-  const response = await axios.get('http://localhost:3000/inventory');
+  const response = await axios.get(`${apiUrl}/inventory`);
   return response.data;
 });
 

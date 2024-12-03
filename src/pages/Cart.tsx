@@ -5,6 +5,7 @@ import { Typography, Button, Grid, Box, Card, CardContent } from '@mui/material'
 import { useNavigate } from 'react-router-dom';
 import { incrementCart, decrementCart, removeFromCart } from '../store/slices/cartSlice';
 import './Cart.css';
+import { apiUrl } from '../Layout';
 
 const Cart = () => {
   const dispatch = useAppDispatch();
@@ -56,7 +57,7 @@ function CartItem({ item }) {
     <Card sx={{ display: 'flex', flexDirection: 'column', boxShadow: 3, borderRadius: 2 }}>
       <img
         className="cart-item-image"
-        src={`http://localhost:3000/inventory/${item.itemId}`}
+        src={`${apiUrl}/inventory/${item.itemId}`}
         alt={item.name}
         style={{
           width: '100%',

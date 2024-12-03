@@ -28,13 +28,18 @@ function playNotificationSound() {
   notificationSound.play();
 }
 
+// backend url link 
+
+export const apiUrl = import.meta.env.VITE_API_URL;
+
+export const socket = io(apiUrl);
+
 
 export default function Layout({ children }) {
   const [value, setValue] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const socket = io('http://localhost:3000');
 
 
   // Show notification with sound

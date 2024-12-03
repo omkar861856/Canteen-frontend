@@ -4,6 +4,7 @@ import { setCart } from '../store/slices/cartSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks/hooks';
 import { fetchInventory } from '../store/slices/menuSlice';
 import { useState, useEffect } from 'react';
+import { apiUrl } from '../Layout';
 
 const Menu = () => {
   const dispatch = useAppDispatch();
@@ -42,7 +43,7 @@ function MenuItem({ item }) {
   return (
     <Card sx={{ display: 'flex', flexDirection: 'column', borderRadius: '10px', boxShadow: 3 }}>
       <img
-        src={`http://localhost:3000/inventory/${item.itemId}`}
+        src={`${apiUrl}/inventory/${item.itemId}`}
         alt={item.name}
         style={{
           width: '100%',

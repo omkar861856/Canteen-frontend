@@ -11,6 +11,7 @@ import { Order } from '../store/slices/ordersSlice';
 import { v4 as uuidv4 } from 'uuid';
 import { useUser } from '@clerk/clerk-react';
 import axios from 'axios'
+import { apiUrl } from '../Layout';
 
 
 const Checkout = () => {
@@ -39,7 +40,7 @@ const Checkout = () => {
   }
 
   async function postOrder(){
-   await axios.post('http://localhost:3000/order', order)
+   await axios.post(`${apiUrl}/order`, order)
     .then(function (response) {
       notify();
       dispatch(addOrder(order));

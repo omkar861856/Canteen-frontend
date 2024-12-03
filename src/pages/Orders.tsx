@@ -7,6 +7,7 @@ import { Order } from '../store/slices/ordersSlice';
 import { useUser } from '@clerk/clerk-react';
 
 import { Timeline, TimelineItem, TimelineDot, TimelineConnector, TimelineContent, TimelineSeparator } from '@mui/lab';
+import { apiUrl } from '../Layout';
 
 const Orders = () => {
   const orders = useAppSelector(state => state.orders);
@@ -16,7 +17,7 @@ const Orders = () => {
   const userId = user?.primaryEmailAddress?.emailAddress;
 
   useEffect(() => {
-    axios.get(`http://localhost:3000/orders/${userId}`)
+    axios.get(`${apiUrl}/orders/${userId}`)
       .then((response) => { setDbOrders(response.data) });
   }, [userId]);
 
