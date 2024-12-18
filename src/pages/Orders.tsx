@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import {
   Typography,
   Box,
@@ -61,8 +61,8 @@ const Orders = () => {
           </Typography>
           <Typography variant="body1">
             <strong>Ordered At:</strong>{" "}
-            {new Date(order.orderedAt).toLocaleDateString()}{" "}
-            {new Date(order.orderedAt).toLocaleTimeString()}
+            {new Date(order.orderedAt ?? "").toLocaleDateString()}{" "}
+            {new Date(order.orderedAt ?? "").toLocaleTimeString()}
           </Typography>
           <Typography variant="body1" color="warning.main">
             <strong>Status:</strong> Order Preparing
@@ -111,8 +111,8 @@ const Orders = () => {
           </Typography>
           <Typography variant="body1">
             <strong>Completed At:</strong>{" "}
-            {new Date(order.completedAt).toLocaleDateString()}{" "}
-            {new Date(order.completedAt).toLocaleTimeString()}
+            {new Date(order.completedAt ?? "").toLocaleDateString()}{" "}
+            {new Date(order.completedAt ?? "").toLocaleTimeString()}
           </Typography>
           <Typography variant="body1" color="success.main">
             <strong>Status:</strong> Completed

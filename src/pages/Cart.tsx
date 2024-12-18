@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks/hooks';
 import { RootState } from '../store/store';
 import { Typography, Button, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
@@ -19,7 +19,7 @@ import { socket } from '../Layout';
 
 
 const Cart = () => {
-  const [loadingSpinner, setLoadingSpinner] = useState(false);
+  const [_, setLoadingSpinner] = useState(false);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const cart = useAppSelector((state: RootState) => state.cart);
@@ -75,7 +75,7 @@ const Cart = () => {
         description: 'Test Transaction',
         image: 'data:image/png;base64,....', // Replace with your logo image
         order_id: id,
-        handler: async (response) => {
+        handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string; }) => {
           try {
             const paymentData = {
               orderCreationId: id,

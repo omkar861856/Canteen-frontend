@@ -75,8 +75,6 @@ const Menu: React.FC = () => {
 
   useEffect(() => {
     dispatch(fetchInventory());
-    console.log(inventory, loading, error)
-
   }, [dispatch]);
 
   if (loading) {
@@ -89,7 +87,7 @@ const Menu: React.FC = () => {
 
   // Group items by category
   const categorizedInventory = Array.isArray(inventory?.updatedItems)
-  ? inventory.updatedItems.reduce((acc: Record<string, InventoryItem[]>, item) => {
+  ? inventory.updatedItems.reduce((acc: Record<string, InventoryItem[]>, item: InventoryItem) => {
       if (!acc[item.category]) {
         acc[item.category] = [];
       }
@@ -111,7 +109,7 @@ const Menu: React.FC = () => {
               {category.charAt(0).toUpperCase() + category.slice(1)}
             </Typography>
             <Grid container spacing={3}>
-              {categorizedInventory[category].map((item) => (
+              {categorizedInventory[category].map((item: InventoryItem) => (
                 <Grid item xs={12} sm={6} md={4} key={item.itemId}>
                   <MenuItem item={item} />
                 </Grid>

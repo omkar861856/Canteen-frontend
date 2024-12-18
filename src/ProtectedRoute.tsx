@@ -1,7 +1,11 @@
 import { useAuth, SignIn } from '@clerk/clerk-react';
 import './ProtectedRoute.css'
 
-const ProtectedRoute = ({ children }) => {
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+const ProtectedRoute = ({ children }:LayoutProps) => {
   const { isLoaded, isSignedIn } = useAuth();
 
   // While Clerk is loading, show a loading spinner

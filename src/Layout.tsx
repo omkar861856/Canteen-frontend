@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import BottomNavigation from '@mui/material/BottomNavigation';
@@ -10,8 +10,7 @@ import './Layout.css';
 import { useNavigate } from 'react-router-dom';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import RamenDiningIcon from '@mui/icons-material/RamenDining';
-import { useAppDispatch, useAppSelector } from './store/hooks/hooks';
-import { RootState } from './store/store';
+import { useAppDispatch} from './store/hooks/hooks';
 import ImportContactsIcon from '@mui/icons-material/ImportContacts';
 import { io } from 'socket.io-client';
 import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
@@ -20,16 +19,17 @@ import { update } from './store/slices/socketSlice';
 import { Snackbar, Menu, MenuItem, IconButton, Badge, Typography } from '@mui/material';
 import NotificationImportantIcon from '@mui/icons-material/NotificationImportant';
 
-// Refresh layout function 
-const layoutReload = () => {
-  window.location.reload();
-};
 
-const notificationSound = new Audio('src/audios/simple-notification-152054.mp3');
+
+// const notificationSound = new Audio('src/audios/simple-notification-152054.mp3');
 
 // Play the sound when a notification arrives
-function playNotificationSound() {
-  notificationSound.play();
+// function playNotificationSound() {
+//   notificationSound.play();
+// }
+
+interface LayoutProps {
+  children: React.ReactNode;
 }
 
 // Backend URL link 
@@ -37,28 +37,28 @@ export const apiUrl = import.meta.env.VITE_API_URL;
 export const razorpay_key_id = import.meta.env.VITE_RAZORPAY_KEY_ID;
 export const socket = io(import.meta.env.VITE_SOCKET_API_URL);
 
-export default function Layout({ children }) {
+export default function Layout({ children }: LayoutProps) {
   const [value, setValue] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const isInitialized = useRef(false); // To ensure logic runs only once per session
   const dispatch = useAppDispatch();
 
-  // Show notification with sound
-  const showNotification = (message: string) => {
-    if (Notification.permission === 'granted') {
-      const notification = new Notification("New Notification", {
-        body: message,
-        icon: 'path_to_your_icon/notification-icon.png', // Optional icon
-      });
+  // // Show notification with sound
+  // const showNotification = (message: string) => {
+  //   if (Notification.permission === 'granted') {
+  //     const notification = new Notification("New Notification", {
+  //       body: message,
+  //       icon: 'path_to_your_icon/notification-icon.png', // Optional icon
+  //     });
 
-      playNotificationSound(); // Play sound when notification appears
+  //     playNotificationSound(); // Play sound when notification appears
 
-      notification.onclick = () => {
-        console.log("Notification clicked!");
-      };
-    }
-  };
+  //     notification.onclick = () => {
+  //       console.log("Notification clicked!");
+  //     };
+  //   }
+  // };
 
   // Clear stale local storage once per session
   useEffect(() => {
@@ -77,15 +77,6 @@ export default function Layout({ children }) {
       console.log("Layout unmounting (clean-up logic if required).");
     };
   }, []);
-
-  // Access the cart state correctly
-  const cart = useAppSelector((state: RootState) => state.cart);
-
-  // Get the total quantity of items in the cart
-  let totalQuantity = 0;
-  if (cart.length !== 0) {
-    totalQuantity = cart.reduce((total, cartItem) => total + cartItem.quantity, 0);
-  }
 
   useEffect(() => {
     if (ref.current) {
@@ -139,7 +130,7 @@ export default function Layout({ children }) {
         <BottomNavigation
           showLabels
           value={value}
-          onChange={(event, newValue) => {
+          onChange={(_, newValue) => {
             setValue(newValue);
           }}
         >
@@ -163,15 +154,15 @@ export default function Layout({ children }) {
 }
 
 const NotificationIconWithMenu = () => {
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const notifications = [
-    'New order received!',
-    'Payment failed!',
-    'Order shipped successfully!',
+    "New order received!",
+    "Payment failed!",
+    "Order shipped successfully!",
   ];
 
-  const handleClick = (event) => {
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -188,7 +179,7 @@ const NotificationIconWithMenu = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', padding: 2 }}>
+    <Box sx={{ display: "flex", alignItems: "center", padding: 2 }}>
       <IconButton onClick={handleClick} color="primary">
         <Badge badgeContent={notifications.length} color="error">
           <NotificationImportantIcon />
@@ -199,7 +190,7 @@ const NotificationIconWithMenu = () => {
         open={Boolean(anchorEl)}
         onClose={handleClose}
         PaperProps={{
-          style: { maxHeight: 200, width: '250px' },
+          style: { maxHeight: 200, width: "90%" },
         }}
       >
         {notifications.length > 0 ? (
@@ -223,7 +214,6 @@ const NotificationIconWithMenu = () => {
     </Box>
   );
 };
-
 function CallCanteenIcon() {
   function handleClick() {
     console.log('Call button clicked!');
