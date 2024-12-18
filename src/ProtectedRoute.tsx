@@ -1,6 +1,4 @@
-import React from 'react';
 import { useAuth, SignIn } from '@clerk/clerk-react';
-import { Navigate } from 'react-router-dom';
 import './ProtectedRoute.css'
 
 const ProtectedRoute = ({ children }) => {

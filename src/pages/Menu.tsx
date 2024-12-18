@@ -1,35 +1,18 @@
+import React, { useEffect } from 'react';
 import { Typography, Button, Card, CardContent, Grid, Box } from '@mui/material';
 import './Menu.css';
 import { setCart } from '../store/slices/cartSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks/hooks';
-import { fetchInventory } from '../store/slices/menuSlice';
-import { useState, useEffect } from 'react';
+import { fetchInventory, InventoryItem } from '../store/slices/menuSlice';
 import { apiUrl } from '../Layout';
+import { toast, ToastContainer } from 'react-toastify';
+import "react-toastify/dist/ReactToastify.css";
 
-const Menu = () => {
-  const dispatch = useAppDispatch();
-  const { inventory } = useAppSelector(state => state.menu);
+interface MenuItemProps {
+  item: InventoryItem;
+}
 
-  useEffect(() => {
-    dispatch(fetchInventory());
-  }, [dispatch]);
-
-  return (
-    <Box sx={{ padding: '20px', maxWidth: '1200px', margin: 'auto' }}>
-      <Grid container spacing={3}>
-        {inventory?.updatedItems.map((i) => (
-          <Grid item xs={12} sm={6} md={4} key={i.itemId}>
-            <MenuItem item={i} />
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
-  );
-};
-
-export default Menu;
-
-function MenuItem({ item }) {
+const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
   const dispatch = useAppDispatch();
 
   const addItemToCart = () => {
@@ -37,11 +20,19 @@ function MenuItem({ item }) {
       ...item,
       quantity: 2,
     };
-    dispatch(setCart(serializedItem));  // Dispatching with the serialized item
+    dispatch(setCart(serializedItem));
+    notify();
+  };
+
+  const notify = () => {
+    toast.success("Added to Cart!", {
+      position: "top-center"
+    });
   };
 
   return (
     <Card sx={{ display: 'flex', flexDirection: 'column', borderRadius: '10px', boxShadow: 3 }}>
+      <ToastContainer />
       <img
         src={`${apiUrl}/inventory/${item.itemId}`}
         alt={item.name}
@@ -76,4 +67,60 @@ function MenuItem({ item }) {
       </CardContent>
     </Card>
   );
-}
+};
+
+const Menu: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { inventory, loading, error } = useAppSelector(state => state.menu);
+
+  useEffect(() => {
+    dispatch(fetchInventory());
+    console.log(inventory, loading, error)
+
+  }, [dispatch]);
+
+  if (loading) {
+    return <Typography>Loading...</Typography>;
+  }
+
+  if (error) {
+    return <Typography>Error: {error}</Typography>;
+  }
+
+  // Group items by category
+  const categorizedInventory = Array.isArray(inventory?.updatedItems)
+  ? inventory.updatedItems.reduce((acc: Record<string, InventoryItem[]>, item) => {
+      if (!acc[item.category]) {
+        acc[item.category] = [];
+      }
+      acc[item.category].push(item);
+      return acc;
+    }, {})
+  : {};
+
+  return (
+    <Box sx={{ padding: '20px', maxWidth: '1200px', margin: 'auto' }}>
+      <Typography variant="h3" gutterBottom>
+        Menu
+      </Typography>
+      <hr />
+      {categorizedInventory &&
+        Object.keys(categorizedInventory).map((category) => (
+          <Box key={category} sx={{ marginBottom: '20px' }}>
+            <Typography variant="h4" color="primary" gutterBottom>
+              {category.charAt(0).toUpperCase() + category.slice(1)}
+            </Typography>
+            <Grid container spacing={3}>
+              {categorizedInventory[category].map((item) => (
+                <Grid item xs={12} sm={6} md={4} key={item.itemId}>
+                  <MenuItem item={item} />
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        ))}
+    </Box>
+  );
+};
+
+export default Menu;

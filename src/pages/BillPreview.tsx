@@ -158,7 +158,7 @@ const BillPreview: React.FC = () => {
           </Button>
         </Grid>
         <Grid item xs={12} sm={6}>
-          <Button variant="contained" color="secondary" onClick={() => navigate('/checkout')} fullWidth>
+          <Button variant="contained" color="secondary" onClick={() => alert("Add razorpay checkout logic")} fullWidth>
             Checkout for Payment
           </Button>
         </Grid>
