@@ -117,7 +117,7 @@ const Cart = () => {
 
             navigate('/orders')
 
-            socket.emit('order-update', "event form the canteen user app");
+            socket.emit('order-update', {room:'order', message:"New order created"});
 
           } catch (error) {
             console.error('Error verifying payment:', error);

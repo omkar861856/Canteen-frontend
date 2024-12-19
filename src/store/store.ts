@@ -6,6 +6,8 @@ import cartReducer from './slices/cartSlice'
 import orderReducer from './slices/ordersSlice'
 import paymentsReducer from './slices/paymentsSlice'
 import socketReducer from './slices/socketSlice'
+import notificationsReducer from './slices/notificationsSlice'
+
 
 
 // Example slice reducer
@@ -19,6 +21,8 @@ const rootReducer = combineReducers({
   orders: orderReducer,
   payments: paymentsReducer,
   socket: socketReducer,
+  notifications: notificationsReducer,
+
 
 });
 
@@ -26,7 +30,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ["menu", "cart"], // Reducers to persist
+  whitelist: ["menu", "cart", 'notifications'], // Reducers to persist
 };
 
 // Persisted reducer
