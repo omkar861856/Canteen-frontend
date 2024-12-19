@@ -19,7 +19,6 @@ export interface Order {
 }
 
 interface OrdersState {
-    filter(arg0: (order: any) => boolean): unknown;
     orders: Order[];
     pendingOrders: Order[];
     loading: boolean;
@@ -32,9 +31,6 @@ const initialState: OrdersState = {
     pendingOrders: [],
     loading: false,
     error: null,
-    filter: function (_: (order: any) => boolean): unknown {
-        throw new Error('Function not implemented.');
-    }
 };
 
 // Async thunk to fetch orders
@@ -104,9 +100,9 @@ const ordersSlice = createSlice({
             })
             .addCase(fetchOrders.fulfilled, (state, action: PayloadAction<Order[]>) => {
                 state.loading = false;
-                const orders = action.payload;
-                state.pendingOrders = orders.filter(e => e.status === 'pending');
-                state.orders = orders;
+                const ordersFiltered = action.payload.filter(e => e.status === 'pending');;
+                state.pendingOrders = ordersFiltered;
+                state.orders = action.payload;
             })
             .addCase(fetchOrders.rejected, (state, action) => {
                 state.loading = false;

@@ -17,13 +17,13 @@ export interface InventoryItem {
 }
 
 interface InventoryState {
-  inventory: {updatedItems: InventoryItem[]};
+  inventory: InventoryItem[];
   loading: boolean;
   error: string | null;
 }
 
 const initialState: InventoryState = {
-  inventory: {updatedItems: []},
+  inventory: [],
   loading: false,
   error: null,
 };
@@ -32,7 +32,8 @@ export const fetchInventory = createAsyncThunk<InventoryItem[]>(
   'menu/fetchInventory',
   async () => {
     const response = await axios.get(`${apiUrl}/inventory`);
-    return response.data.updatedItems; // Return actual data instead of []
+    console.log(response.data)
+    return response.data; // Return actual data instead of []
   }
 );
 
@@ -49,7 +50,7 @@ const menuSlice = createSlice({
       .addCase(fetchInventory.fulfilled, (state, action) => {
         state.loading = false;
         console.log(action.payload)
-        state.inventory = { updatedItems: action.payload }; // Wrap payload in an object
+        state.inventory = action.payload; // Wrap payload in an object
       })
       .addCase(fetchInventory.rejected, (state, action) => {
         state.loading = false;

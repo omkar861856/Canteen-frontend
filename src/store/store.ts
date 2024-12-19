@@ -38,10 +38,12 @@ export const store = configureStore({
 //   middleware: [thunk], // Add thunk for async actions
 middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      // serializableCheck: {
-      //   ignoredActions: ['cart/setCart'],
-      //   ignoredPaths: ['cart.createdAt', 'cart.updatedAt'],  // Ignore Date fields
-      // },
+      serializableCheck: {
+        // Ignore redux-persist actions
+        ignoredActions: ['menu/fetchInventory','persist/PERSIST', 'persist/REHYDRATE'],
+        // Optionally ignore specific keys in the state
+        ignoredPaths: ['register'],
+      },
     }),
 });
 

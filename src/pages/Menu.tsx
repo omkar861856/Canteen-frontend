@@ -75,6 +75,7 @@ const Menu: React.FC = () => {
 
   useEffect(() => {
     dispatch(fetchInventory());
+    console.log(inventory)
   }, [dispatch]);
 
   if (loading) {
@@ -84,10 +85,9 @@ const Menu: React.FC = () => {
   if (error) {
     return <Typography>Error: {error}</Typography>;
   }
-
   // Group items by category
-  const categorizedInventory = Array.isArray(inventory?.updatedItems)
-  ? inventory.updatedItems.reduce((acc: Record<string, InventoryItem[]>, item: InventoryItem) => {
+  const categorizedInventory = Array.isArray(inventory)
+  ? inventory.reduce((acc: Record<string, InventoryItem[]>, item: InventoryItem) => {
       if (!acc[item.category]) {
         acc[item.category] = [];
       }
