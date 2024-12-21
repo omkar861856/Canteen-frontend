@@ -26,24 +26,45 @@ export default function AppTheme({
     return disableCustomTheme
       ? {}
       : createTheme({
-          // For more details about CSS variables configuration, see https://mui.com/material-ui/customization/css-theme-variables/configuration/
-          cssVariables: {
-            colorSchemeSelector: 'data-mui-color-scheme',
-            cssVarPrefix: 'template',
+        // For more details about CSS variables configuration, see https://mui.com/material-ui/customization/css-theme-variables/configuration/
+        cssVariables: {
+          colorSchemeSelector: 'data-mui-color-scheme',
+          cssVarPrefix: 'template',
+        },
+        colorSchemes, // Recently added in v6 for building light & dark mode app, see https://mui.com/material-ui/customization/palette/#color-schemes
+        typography: {
+          fontFamily: 'Roboto, Arial, sans-serif',
+          h1: {
+            fontFamily: 'Roboto, Arial, sans-serif',
+            fontWeight: 700,
+            fontSize: '2.5rem',
           },
-          colorSchemes, // Recently added in v6 for building light & dark mode app, see https://mui.com/material-ui/customization/palette/#color-schemes
-          typography,
-          shadows,
-          shape,
-          components: {
-            ...inputsCustomizations,
-            ...dataDisplayCustomizations,
-            ...feedbackCustomizations,
-            ...navigationCustomizations,
-            ...surfacesCustomizations,
-            ...themeComponents,
+          h2: {
+            fontWeight: 700,
+            fontSize: '2rem',
           },
-        });
+          body1: {
+            fontFamily: 'Roboto, Arial, sans-serif',
+            fontWeight: 400,
+            fontSize: '1rem',
+          },
+          subtitle1: {
+            fontFamily: 'Merriweather, Georgia, serif',
+            fontWeight: 400,
+            fontStyle: 'italic',
+          },
+        },
+        shadows,
+        shape,
+        components: {
+          ...inputsCustomizations,
+          ...dataDisplayCustomizations,
+          ...feedbackCustomizations,
+          ...navigationCustomizations,
+          ...surfacesCustomizations,
+          ...themeComponents,
+        },
+      });
   }, [disableCustomTheme, themeComponents]);
   if (disableCustomTheme) {
     return <React.Fragment>{children}</React.Fragment>;

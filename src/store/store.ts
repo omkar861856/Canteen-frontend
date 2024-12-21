@@ -7,6 +7,7 @@ import orderReducer from './slices/ordersSlice'
 import paymentsReducer from './slices/paymentsSlice'
 import socketReducer from './slices/socketSlice'
 import notificationsReducer from './slices/notificationsSlice'
+import generalFeedbackReducer from './slices/generaFeedbackSlice'
 
 
 
@@ -22,8 +23,7 @@ const rootReducer = combineReducers({
   payments: paymentsReducer,
   socket: socketReducer,
   notifications: notificationsReducer,
-
-
+  generalFeedback: generalFeedbackReducer,
 });
 
 // Persist configuration

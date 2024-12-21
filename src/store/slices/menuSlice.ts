@@ -32,7 +32,6 @@ export const fetchInventory = createAsyncThunk<InventoryItem[]>(
   'menu/fetchInventory',
   async () => {
     const response = await axios.get(`${apiUrl}/inventory`);
-    console.log(response.data)
     return response.data; // Return actual data instead of []
   }
 );
@@ -49,7 +48,6 @@ const menuSlice = createSlice({
       })
       .addCase(fetchInventory.fulfilled, (state, action) => {
         state.loading = false;
-        console.log(action.payload)
         state.inventory = action.payload; // Wrap payload in an object
       })
       .addCase(fetchInventory.rejected, (state, action) => {

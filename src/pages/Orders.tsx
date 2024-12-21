@@ -35,7 +35,6 @@ const Orders = () => {
   useEffect(() => {
     if (userId) {
       dispatch(fetchOrdersByUserId(userId));
-      console.log(socketOrder)
     }
   }, [userId, dispatch, socketOrder]);
 

@@ -25,31 +25,66 @@ const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
   };
 
   const notify = () => {
-    toast.success("Added to Cart!", {
-      position: "top-center"
+    toast.success('Added to Cart!', {
+      position: 'top-center',
     });
   };
 
   return (
-    <Card sx={{ display: 'flex', flexDirection: 'column', borderRadius: '10px', boxShadow: 3 }}>
+    <Card
+      sx={{
+        height: 'auto',
+        width: '300px',
+        display: 'flex',
+        flexDirection: 'column',
+        borderRadius: '10px',
+        boxShadow: 3,
+        padding: 2,
+      }}
+    >
       <ToastContainer />
-      <img
-        src={`${apiUrl}/inventory/${item.itemId}`}
-        alt={item.name}
-        style={{
-          width: '100%',
-          height: 'auto',
-          borderTopLeftRadius: '10px',
-          borderTopRightRadius: '10px',
+      <CardContent
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
         }}
-      />
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px' }}>
-        <Typography variant="h5" color="primary" sx={{ fontWeight: 'bold', marginBottom: '8px' }}>
-          {item.name}
-        </Typography>
-        <Typography variant="h6" color="textSecondary" sx={{ marginBottom: '16px' }}>
-          Rs {item.price}
-        </Typography>
+      >
+        {/* Layout for Image, Name, and Price */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: 2,
+          }}
+        >
+          {/* Image */}
+          <img
+            src={`${apiUrl}/inventory/${item.itemId}`}
+            alt={item.name}
+            style={{
+              width: '100px',
+              height: '100px',
+              borderRadius: '10px',
+            }}
+          />
+          {/* Name and Price */}
+          <Box
+            sx={{
+              marginLeft: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
+          >
+            <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
+              {item.name}
+            </Typography>
+            <Typography variant="h6" color="textSecondary">
+              Rs {item.price}
+            </Typography>
+          </Box>
+        </Box>
+        {/* Add to Cart Button */}
         <Button
           variant="contained"
           color="primary"
@@ -69,13 +104,14 @@ const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
   );
 };
 
+
+
 const Menu: React.FC = () => {
   const dispatch = useAppDispatch();
   const { inventory, loading, error } = useAppSelector(state => state.menu);
 
   useEffect(() => {
     dispatch(fetchInventory());
-    console.log(inventory)
   }, [dispatch]);
 
   if (loading) {
@@ -98,14 +134,14 @@ const Menu: React.FC = () => {
 
   return (
     <Box sx={{ padding: '20px', maxWidth: '1200px', margin: 'auto' }}>
-      <Typography variant="h3" gutterBottom>
+      <Typography variant="h5" gutterBottom>
         Menu
       </Typography>
       <hr />
       {categorizedInventory &&
         Object.keys(categorizedInventory).map((category) => (
           <Box key={category} sx={{ marginBottom: '20px' }}>
-            <Typography variant="h4" color="primary" gutterBottom>
+            <Typography variant="h6" color="primary" gutterBottom>
               {category.charAt(0).toUpperCase() + category.slice(1)}
             </Typography>
             <Grid container spacing={3}>

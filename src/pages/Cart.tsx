@@ -11,11 +11,12 @@ import { useUser } from '@clerk/clerk-react';
 import { apiUrl } from '../Layout';
 import { savePayment } from '../store/slices/paymentsThunks';
 import { emptyCart } from '../store/slices/cartSlice';
-import { createOrder } from '../store/slices/ordersSlice';
 import { CartItem } from '../store/slices/cartSlice';
 
 import { Order } from '../store/slices/ordersSlice';
 import { socket } from '../Layout';
+import ModalForm from '../components/AddressForm';
+import { createOrder, setAddressDetails } from '../store/slices/ordersSlice';
 
 
 const Cart = () => {
@@ -27,6 +28,21 @@ const Cart = () => {
   const userEmail = user?.user?.primaryEmailAddress?.emailAddress;
   const totalPrice = cart.reduce((total, item) => total + item.price * item.quantity, 0);
   const totalPreparationTime = calculateTotalDeliveryTime(cart);
+  const userPhoneNumber = user.user?.primaryPhoneNumber?.phoneNumber;
+  const addressDetails = useAppSelector((state) => state.orders.addressDetails);
+
+  // for modal form
+  const [open, setOpen] = useState(false);
+
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  // const [openFeedback, setOpenFeedback] = useState(false);
+
+  // const handleOpenFeedback = () => setOpenFeedback(true);
+  // const handleCloseFeedback = () => setOpenFeedback(false);
+   const [checkout, setCheckout] = useState(false);
+
 
   function calculateTotalDeliveryTime(cart: CartItem[]) {
     if (!Array.isArray(cart) || cart.length === 0) {
@@ -62,83 +78,105 @@ const Cart = () => {
       return;
     }
 
-    try {
-      const response = await axios.post(`${apiUrl}/razorpay/orders`, { totalPrice });
 
-      const { amount, id, currency } = response.data;
+    if (totalPrice == 0) {
 
-      const options = {
-        key: 'rzp_test_2Bu02SdOJVriid',
-        amount: amount.toString(),
-        currency,
-        name: 'Canteen-Ang',
-        description: 'Test Transaction',
-        image: 'data:image/png;base64,....', // Replace with your logo image
-        order_id: id,
-        handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string; }) => {
-          try {
-            const paymentData = {
-              orderCreationId: id,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpayOrderId: response.razorpay_order_id,
-              razorpaySignature: response.razorpay_signature,
-            };
+      alert("Cart is empty - add something for checkout")
+      return;
 
-            const postResult = await axios.post(`${apiUrl}/razorpay/success`, paymentData);
-
-            if (postResult.status !== 200) {
-              throw new Error('Payment verification failed');
-            }
-
-            const paymentResult = await axios.get(`${apiUrl}/razorpay/payment/${paymentData.razorpayPaymentId}`)
-            const payment = paymentResult.data;
-
-            await dispatch(savePayment(payment))
-
-            // create order 
-
-            const newOrder: Order = {
-              orderId: id,
-              userId: userEmail,
-              items: cart, // Assuming InventoryItem[] is an array of objects
-              status: 'pending',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              totalPreparationTime: totalPreparationTime,
-              totalPrice: totalPrice,
-              orderedAt: new Date().toISOString(),
-              completedAt: null,
-              razorpayPaymentId: paymentData.razorpayPaymentId
-            };
-
-            dispatch(createOrder(newOrder))
-
-            dispatch(emptyCart())
-
-            navigate('/orders')
-
-            socket.emit('order-update', {room:'order', message:"New order created"});
-
-          } catch (error) {
-            console.error('Error verifying payment:', error);
-            alert('Payment verification failed. Please try again.');
-          }
-        },
-        prefill: {
-          name: user?.user?.fullName || 'Guest User',
-          email: userEmail || 'guest@example.com',
-          contact: '9999999999',
-        },
-        notes: { address: 'Canteen' },
-        theme: { color: '#61dafb' },
-      };
-
-      const paymentObject = new window.Razorpay(options);
-      paymentObject.open();
-    } catch (error) {
-      console.error('Error during Razorpay checkout:', error);
-      alert('An error occurred. Please try again.');
     }
+
+
+   
+
+      try {
+        const response = await axios.post(`${apiUrl}/razorpay/orders`, { totalPrice });
+
+        const { amount, id, currency } = response.data;
+
+        const options = {
+          key: 'rzp_test_2Bu02SdOJVriid',
+          amount: amount.toString(),
+          currency,
+          name: 'Canteen-Ang',
+          description: 'Test Transaction',
+          image: 'data:image/png;base64,....', // Replace with your logo image
+          order_id: id,
+          handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string; }) => {
+            try {
+              const paymentData = {
+                orderCreationId: id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpaySignature: response.razorpay_signature,
+              };
+
+              const postResult = await axios.post(`${apiUrl}/razorpay/success`, paymentData);
+
+              if (postResult.status !== 200) {
+                throw new Error('Payment verification failed');
+              }
+
+              const paymentResult = await axios.get(`${apiUrl}/razorpay/payment/${paymentData.razorpayPaymentId}`)
+              const payment = paymentResult.data;
+
+              await dispatch(savePayment(payment))
+              setCheckout(false)
+
+              // create order 
+
+              const newOrder: Order = {
+                orderId: id,
+                userId: userEmail,
+                userFullName: user.user?.fullName,
+                userPhoneNumber: userPhoneNumber,
+                items: cart, // Assuming InventoryItem[] is an array of objects
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                totalPreparationTime: totalPreparationTime,
+                totalPrice: totalPrice,
+                orderedAt: new Date().toISOString(),
+                completedAt: null,
+                razorpayPaymentId: paymentData.razorpayPaymentId
+              };
+
+              const finalOrder = {
+                ...newOrder,
+                ...addressDetails
+              }
+
+              dispatch(createOrder(finalOrder))
+              dispatch(setAddressDetails(null))
+              dispatch(emptyCart())
+              navigate('/orders')
+              socket.emit('order-update', { room: 'order', message: "New order created" });
+
+            } catch (error) {
+              console.error('Error verifying payment:', error);
+              alert('Payment verification failed. Please try again.');
+            }
+          },
+          prefill: {
+            name: user?.user?.fullName || 'Guest User',
+            email: userEmail || 'guest@example.com',
+            contact: '9999999999',
+          },
+          notes: { address: 'Canteen' },
+          theme: { color: '#61dafb' },
+        };
+
+        const paymentObject = new window.Razorpay(options);
+        paymentObject.open();
+      } catch (error) {
+        console.error('Error during Razorpay checkout:', error);
+        alert('An error occurred. Please try again.');
+      }
+
+    
+
+
+
   };
 
   const handleIncrement = (item: any) => {
@@ -153,6 +191,8 @@ const Cart = () => {
     dispatch(removeFromCart(item));
     toast.info('Removed item from Cart!', { position: 'top-center' });
   };
+
+
 
   return (
     <>
@@ -217,7 +257,7 @@ const Cart = () => {
 
         <Typography variant="h5">Total: ₹ {totalPrice}</Typography>
         <Box sx={{ marginTop: '20px' }}>
-          <Button
+          {/* <Button
             variant="contained"
             color="primary"
             fullWidth
@@ -225,15 +265,39 @@ const Cart = () => {
             sx={{ marginBottom: '10px' }}
           >
             Preview Bill
-          </Button>
-          <Button
+          </Button> */}
+          {checkout?<Button
             variant="contained"
             color="secondary"
             fullWidth
-            onClick={displayRazorpay}
+            onClick={() => {
+
+              if (user.user?.primaryPhoneNumber == null) {
+                alert("please add your phone number in the profile section")
+              } else (
+                displayRazorpay()
+              )
+
+            }}
           >
             Checkout for Payment
-          </Button>
+          </Button>:<Button
+            variant="contained"
+            color="secondary"
+            fullWidth
+            onClick={() => {
+
+             handleOpen()
+             setCheckout(true)
+
+            }}
+          >
+            Add Cabin details
+          </Button>}
+          
+          
+          <ModalForm open={open} onClose={handleClose} />
+          {/* <FeedbackFormModal open={openFeedback} onClose={handleCloseFeedback} /> */}
         </Box>
       </Box>
     </>

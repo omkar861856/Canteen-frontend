@@ -1,0 +1,17 @@
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  h1, h2, h3 {
+    font-family: 'Lora', Georgia, serif;
+    font-weight: 700;
+    color: #0073e6; /* Corporate blue for headings */
+  }
+  
+  .accent {
+    font-family: 'Lora', Georgia, serif;
+    font-style: italic;
+    color: #555; /* Subtle accent color */
+  }

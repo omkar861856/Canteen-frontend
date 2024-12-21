@@ -7,6 +7,8 @@ import { InventoryItem } from './menuSlice';
 export interface Order {
     orderId: string;
     userId: string | undefined;
+    userPhoneNumber: string | undefined;
+    userFullName: string | undefined | null;
     items: InventoryItem[];
     status: 'pending' | 'completed' | 'cancelled';
     createdAt: string;
@@ -18,9 +20,16 @@ export interface Order {
     razorpayPaymentId: string;
 }
 
+interface AddressDetails {
+    cabinName: string;
+    extraInfo?: string;
+    specialInstructions?: string;
+  }
+
 interface OrdersState {
     orders: Order[];
     pendingOrders: Order[];
+    addressDetails: AddressDetails | null; // Add this line
     loading: boolean;
     error: string | null | undefined;
 }
@@ -29,6 +38,7 @@ interface OrdersState {
 const initialState: OrdersState = {
     orders: [],
     pendingOrders: [],
+    addressDetails: null, // Initialize as null
     loading: false,
     error: null,
 };
@@ -77,9 +87,7 @@ export const createOrder = createAsyncThunk(
   'orders/createOrder',
   async (order: Partial<Order>) => {
       try {
-        console.log("started thunk to create order")
           const response = await axios.post(`${apiUrl}/orders`, order);
-          console.log(response)
           return response.data; 
       } catch (error) {
           throw Error('Failed to fetch orders');
@@ -91,7 +99,11 @@ export const createOrder = createAsyncThunk(
 const ordersSlice = createSlice({
     name: 'orders',
     initialState,
-    reducers: {},
+    reducers: {
+        setAddressDetails: (state, action: PayloadAction<AddressDetails | null>) => {
+            state.addressDetails = action.payload; // Update address details
+          },
+    },
     extraReducers: (builder) => {
         builder
             // Handle fetch all orders
@@ -162,5 +174,6 @@ const ordersSlice = createSlice({
     },
 });
 
+export const { setAddressDetails } = ordersSlice.actions;
 
 export default ordersSlice.reducer;

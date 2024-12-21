@@ -10,25 +10,26 @@ import './Layout.css';
 import { useNavigate } from 'react-router-dom';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import RamenDiningIcon from '@mui/icons-material/RamenDining';
-import { useAppDispatch} from './store/hooks/hooks';
+import { useAppDispatch } from './store/hooks/hooks';
 import ImportContactsIcon from '@mui/icons-material/ImportContacts';
 import { io } from 'socket.io-client';
 import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
 import Marquee from "react-fast-marquee";
 import { update } from './store/slices/socketSlice';
 import { Snackbar, Menu, MenuItem, IconButton, Badge, Typography } from '@mui/material';
-import NotificationImportantIcon from '@mui/icons-material/NotificationImportant';
 import { useAppSelector } from './store/hooks/hooks';
 import { addNotification, clearNotifications } from './store/slices/notificationsSlice';
+import { useLocation } from 'react-router-dom';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import RateReviewIcon from '@mui/icons-material/RateReview';
+import GeneralFeedbackModal from './components/GeneralFeedback';
 
 
+const notificationSound = new Audio('src/audios/simple-notification-152054.mp3');
 
-// const notificationSound = new Audio('src/audios/simple-notification-152054.mp3');
-
-// Play the sound when a notification arrives
-// function playNotificationSound() {
-//   notificationSound.play();
-// }
+function playNotificationSound() {
+  notificationSound.play();
+}
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -37,7 +38,7 @@ interface LayoutProps {
 // Backend URL link 
 export const apiUrl = import.meta.env.VITE_API_URL;
 export const razorpay_key_id = import.meta.env.VITE_RAZORPAY_KEY_ID;
-export const socket = io(import.meta.env.VITE_SOCKET_API_URL,{
+export const socket = io(import.meta.env.VITE_SOCKET_API_URL, {
   reconnection: true, // Allow reconnections
   reconnectionAttempts: 5, // Number of attempts before giving up
   reconnectionDelay: 2000, // Delay between reconnection attempts
@@ -52,7 +53,25 @@ export default function Layout({ children }: LayoutProps) {
   const dispatch = useAppDispatch();
   const socketRef = useRef(socket);
   const [socketConnection, setSocketConnection] = useState(false)
+  const location = useLocation();
 
+  useEffect(() => {
+    // Use a switch statement to set the value based on the path
+    switch (location.pathname) {
+      case '/':
+        setValue(0);
+        break;
+      case '/cart':
+        setValue(1);
+        break;
+      case '/orders':
+        setValue(2);
+        break;
+      default:
+        setValue(0); // Default value for unknown paths
+        break;
+    }
+  }, [location.pathname]);
 
   // // Show notification with sound
   // const showNotification = (message: string) => {
@@ -103,8 +122,10 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [value]);
 
+
   useEffect(() => {
     const socketInstance = socketRef.current;
+
 
     socketInstance.on("connect", () => {
       setSocketConnection(true)
@@ -123,12 +144,11 @@ export default function Layout({ children }: LayoutProps) {
     socket.emit('joinRoom', 'order');
     socket.emit('joinRoom', 'payment');
 
-     // Listen for notifications
-     socketInstance.on('notification', (data: String) => {
-      console.log(data)
+    // Listen for notifications
+    socketInstance.on('notification', (data: String) => {
       dispatch(addNotification(data));
+      playNotificationSound()
     });
-
 
     socketInstance.on('disconnect', (reason) => {
       console.log(`Disconnected: ${reason}`);
@@ -152,6 +172,7 @@ export default function Layout({ children }: LayoutProps) {
         <ColorModeSelect />
         <div className='icons-right'>
           <CallCanteenIcon />
+          <FeedbackIcon />
           <NotificationIconWithMenu />
         </div>
       </div>
@@ -194,7 +215,6 @@ const NotificationIconWithMenu = () => {
   const notificationss = useAppSelector(state => state.notifications)
   const notifications = notificationss.notifications
   const dispatch = useAppDispatch();
-  console.log(notifications)
 
   // const notifications = [
   //   "New order received!",
@@ -207,6 +227,7 @@ const NotificationIconWithMenu = () => {
 
   const handleClose = () => {
     setAnchorEl(null);
+    handleClear()
   };
 
   const handleSnackbarOpen = () => {
@@ -215,9 +236,9 @@ const NotificationIconWithMenu = () => {
 
   const handleSnackbarClose = () => {
     setOpenSnackbar(false);
+    handleClear()
   };
 
-  console.log("notifications length ", notifications.length)
 
   function handleClear() {
 
@@ -229,7 +250,7 @@ const NotificationIconWithMenu = () => {
     <Box sx={{ display: "flex", alignItems: "center", padding: 2 }}>
       <IconButton onClick={handleClick} color="primary">
         <Badge badgeContent={notifications.length} color="error">
-          <NotificationImportantIcon />
+          <NotificationsIcon />
         </Badge>
       </IconButton>
       <Menu
@@ -240,21 +261,15 @@ const NotificationIconWithMenu = () => {
           style: { maxHeight: 200, width: "90%" },
         }}
       >
-        {notifications.length > 0 ? (<div>
-          <MenuItem onClick={handleClear}>
-            <Typography variant="body2">Clear all</Typography>
-          </MenuItem>
+        {notifications.length > 0 ? (
 
-          {notifications.map((notification, index) => (
+          notifications.map((notification, index) => (
             <MenuItem key={index} onClick={handleSnackbarOpen}>
               <Typography variant="body2">{notification}</Typography>
             </MenuItem>
-          ))}
+          ))
 
-         
-
-
-        </div>) : (
+        ) : (
           <MenuItem>
             <Typography variant="body2">No new notifications</Typography>
           </MenuItem>
@@ -273,7 +288,7 @@ const NotificationIconWithMenu = () => {
 
 function CallCanteenIcon() {
   function handleClick() {
-    console.log('Call button clicked!');
+    alert('Call button clicked!');
   }
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', padding: 2 }}>
@@ -282,4 +297,26 @@ function CallCanteenIcon() {
       </IconButton>
     </Box>
   );
+}
+
+function FeedbackIcon(){
+
+
+  const [isFeedbackModalOpen, setFeedbackModalOpen] = useState(false);
+
+  const handleOpenModal = () => setFeedbackModalOpen(true);
+  const handleCloseModal = () => setFeedbackModalOpen(false);
+
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', padding: 2 }}>
+      <IconButton onClick={handleOpenModal} color="primary">
+        <RateReviewIcon />
+      </IconButton>
+      <GeneralFeedbackModal
+        open={isFeedbackModalOpen}
+        onClose={handleCloseModal}
+      />
+    </Box>
+  );
+
 }
