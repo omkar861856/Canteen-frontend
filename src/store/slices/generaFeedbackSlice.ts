@@ -46,9 +46,6 @@ const feedbackSlice = createSlice({
       state.rating = action.payload.rating;
       state.date = new Date().toISOString();
     },
-    clearFeedback:(state) => {
-        state = initialState
-      },
   },
   extraReducers: (builder) => {
     builder
@@ -67,5 +64,5 @@ const feedbackSlice = createSlice({
 });
 
 // Export actions and reducer
-export const { setFeedback, clearFeedback } = feedbackSlice.actions;
+export const { setFeedback } = feedbackSlice.actions;
 export default feedbackSlice.reducer;
