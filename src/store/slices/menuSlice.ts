@@ -32,7 +32,7 @@ export const fetchInventory = createAsyncThunk<InventoryItem[]>(
   'menu/fetchInventory',
   async () => {
     const response = await axios.get(`${apiUrl}/inventory`);
-    return response.data; // Return actual data instead of []
+    return response.data; 
   }
 );
 

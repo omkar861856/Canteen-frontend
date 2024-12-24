@@ -26,10 +26,11 @@ const Cart = () => {
   const cart = useAppSelector((state: RootState) => state.cart);
   const user = useUser();
   const userEmail = user?.user?.primaryEmailAddress?.emailAddress;
-  const totalPrice = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  const totalPrice = cart.reduce((total:number, item) => total + item.price * item.quantity, 0);
   const totalPreparationTime = calculateTotalDeliveryTime(cart);
   const userPhoneNumber = user.user?.primaryPhoneNumber?.phoneNumber;
   const addressDetails = useAppSelector((state) => state.orders.addressDetails);
+
 
   // for modal form
   const [open, setOpen] = useState(false);
@@ -77,19 +78,14 @@ const Cart = () => {
       alert('Razorpay SDK failed to load. Are you online?');
       return;
     }
-
-
     if (totalPrice == 0) {
 
       alert("Cart is empty - add something for checkout")
       return;
 
     }
-
-
-   
-
       try {
+
         const response = await axios.post(`${apiUrl}/razorpay/orders`, { totalPrice });
 
         const { amount, id, currency } = response.data;
@@ -141,14 +137,9 @@ const Cart = () => {
                 razorpayPaymentId: paymentData.razorpayPaymentId
               };
 
-              const finalOrder = {
-                ...newOrder,
-                ...addressDetails
-              }
-
-              dispatch(createOrder(finalOrder))
-              dispatch(setAddressDetails(null))
-              dispatch(emptyCart())
+              await dispatch(createOrder(newOrder))
+                  dispatch(setAddressDetails(null))
+                  dispatch(emptyCart())
               navigate('/orders')
               socket.emit('order-update', { room: 'order', message: "New order created" });
 
@@ -172,10 +163,6 @@ const Cart = () => {
         console.error('Error during Razorpay checkout:', error);
         alert('An error occurred. Please try again.');
       }
-
-    
-
-
 
   };
 
@@ -266,26 +253,16 @@ const Cart = () => {
           >
             Preview Bill
           </Button> */}
-          {checkout?<Button
+        <Button
             variant="contained"
             color="secondary"
             fullWidth
             onClick={() => {
 
-              if (user.user?.primaryPhoneNumber == null) {
-                alert("please add your phone number in the profile section")
-              } else (
-                displayRazorpay()
-              )
-
-            }}
-          >
-            Checkout for Payment
-          </Button>:<Button
-            variant="contained"
-            color="secondary"
-            fullWidth
-            onClick={() => {
+              if(cart.length == 0){
+                alert('Cart is empty')
+                return
+              }
 
              handleOpen()
              setCheckout(true)
@@ -293,10 +270,9 @@ const Cart = () => {
             }}
           >
             Add Cabin details
-          </Button>}
+          </Button>
           
-          
-          <ModalForm open={open} onClose={handleClose} />
+          <ModalForm open={open} onClose={handleClose} displayRazorpay={displayRazorpay}/>
           {/* <FeedbackFormModal open={openFeedback} onClose={handleCloseFeedback} /> */}
         </Box>
       </Box>

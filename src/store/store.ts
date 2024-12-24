@@ -9,8 +9,6 @@ import socketReducer from './slices/socketSlice'
 import notificationsReducer from './slices/notificationsSlice'
 import generalFeedbackReducer from './slices/generaFeedbackSlice'
 
-
-
 // Example slice reducer
 import exampleReducer from './slices/exampleSlice';
 
@@ -44,7 +42,7 @@ middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
         // Ignore redux-persist actions
-        ignoredActions: ['menu/fetchInventory','persist/PERSIST', 'persist/REHYDRATE'],
+        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
         // Optionally ignore specific keys in the state
         ignoredPaths: ['register'],
       },

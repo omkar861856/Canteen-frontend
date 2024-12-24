@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Typography, Button, Card, CardContent, Grid, Box } from '@mui/material';
 import './Menu.css';
 import { setCart } from '../store/slices/cartSlice';
@@ -7,6 +7,7 @@ import { fetchInventory, InventoryItem } from '../store/slices/menuSlice';
 import { apiUrl } from '../Layout';
 import { toast, ToastContainer } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
+import axios from 'axios';
 
 interface MenuItemProps {
   item: InventoryItem;
@@ -108,7 +109,20 @@ const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
 
 const Menu: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { inventory, loading, error } = useAppSelector(state => state.menu);
+  const { loading, error } = useAppSelector(state => state.menu);
+  const [inventory, setInventory] = useState([])
+
+  useEffect(() => {
+
+    (async () => {
+
+      const response = await axios.get(`${apiUrl}/inventory`);
+      console.log(response.data)
+      setInventory(response.data)
+
+    })()
+
+  }, [])
 
   useEffect(() => {
     dispatch(fetchInventory());
@@ -123,14 +137,14 @@ const Menu: React.FC = () => {
   }
   // Group items by category
   const categorizedInventory = Array.isArray(inventory)
-  ? inventory.reduce((acc: Record<string, InventoryItem[]>, item: InventoryItem) => {
+    ? inventory.reduce((acc: Record<string, InventoryItem[]>, item: InventoryItem) => {
       if (!acc[item.category]) {
         acc[item.category] = [];
       }
       acc[item.category].push(item);
       return acc;
     }, {})
-  : {};
+    : {};
 
   return (
     <Box sx={{ padding: '20px', maxWidth: '1200px', margin: 'auto' }}>

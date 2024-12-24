@@ -20,16 +20,18 @@ export interface Order {
     razorpayPaymentId: string;
 }
 
-interface AddressDetails {
+export interface AddressDetails {
     cabinName: string;
     extraInfo?: string;
     specialInstructions?: string;
   }
 
+export interface CombinedOrder extends Order, AddressDetails {}
+
 interface OrdersState {
     orders: Order[];
     pendingOrders: Order[];
-    addressDetails: AddressDetails | null; // Add this line
+    addressDetails: AddressDetails | null;
     loading: boolean;
     error: string | null | undefined;
 }
@@ -85,9 +87,12 @@ export const updateOrderStatus = createAsyncThunk(
 // Async thunk to fetch orders
 export const createOrder = createAsyncThunk(
   'orders/createOrder',
-  async (order: Partial<Order>) => {
+  async (order: Partial<Order>, thunkAPI) => {
+    const state:any = thunkAPI.getState();
+    console.log(state)
+    const newOrder = {...order, ...state.orders.addressDetails}
       try {
-          const response = await axios.post(`${apiUrl}/orders`, order);
+          const response = await axios.post(`${apiUrl}/orders`, newOrder);
           return response.data; 
       } catch (error) {
           throw Error('Failed to fetch orders');
@@ -101,7 +106,7 @@ const ordersSlice = createSlice({
     initialState,
     reducers: {
         setAddressDetails: (state, action: PayloadAction<AddressDetails | null>) => {
-            state.addressDetails = action.payload; // Update address details
+            state.addressDetails = action.payload;
           },
     },
     extraReducers: (builder) => {

@@ -23,6 +23,7 @@ import { useLocation } from 'react-router-dom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import GeneralFeedbackModal from './components/GeneralFeedback';
+import { useUser } from '@clerk/clerk-react';
 
 
 const notificationSound = new Audio('src/audios/simple-notification-152054.mp3');
@@ -54,6 +55,16 @@ export default function Layout({ children }: LayoutProps) {
   const socketRef = useRef(socket);
   const [socketConnection, setSocketConnection] = useState(false)
   const location = useLocation();
+  const user = useUser();
+
+  const [invisible, setInvisible] = useState(false);
+  const [menuInvisible, setMenuInvisible] = useState(false)
+  const [cartInvisible, setCartInvisible] = useState(false)
+  const [ordersInvisible, setOrdersInvisible] = useState(false)
+
+  const handleBadgeVisibility = () => {
+    setInvisible(!invisible);
+  };
 
   useEffect(() => {
     // Use a switch statement to set the value based on the path
@@ -126,13 +137,13 @@ export default function Layout({ children }: LayoutProps) {
   useEffect(() => {
     const socketInstance = socketRef.current;
 
+    if (user?.user?.id) {
 
-    socketInstance.on("connect", () => {
-      setSocketConnection(true)
+      // Register the client with a user ID
+      socket.emit("register", user.user.id);
 
-      console.log("App A connected with ID:", socket.id);
-    });
 
+    }
     // Listen for the broadcast from the server
     socketInstance.on("order-update-server", () => {
       dispatch(update());
@@ -140,12 +151,13 @@ export default function Layout({ children }: LayoutProps) {
 
 
     // Join specific rooms for notifications
-    socket.emit('joinRoom', 'menu');
-    socket.emit('joinRoom', 'order');
-    socket.emit('joinRoom', 'payment');
+    // socket.emit('joinRoom', 'menu');
+    // socket.emit('joinRoom', 'order');
+    // socket.emit('joinRoom', 'payment');
 
     // Listen for notifications
     socketInstance.on('notification', (data: String) => {
+      console.log(data)
       dispatch(addNotification(data));
       playNotificationSound()
     });
@@ -163,7 +175,7 @@ export default function Layout({ children }: LayoutProps) {
       socketInstance.off('notification');
 
     };
-  }, [dispatch, socketConnection]);
+  }, [dispatch, socketConnection, user]);
 
   return (
     <Box sx={{ pb: 7 }} ref={ref}>
@@ -190,9 +202,11 @@ export default function Layout({ children }: LayoutProps) {
             setValue(newValue);
           }}
         >
-          <BottomNavigationAction onClick={() => navigate("/")} label="Menu" icon={<ImportContactsIcon />} />
-          <BottomNavigationAction onClick={() => navigate("/cart")} label="Cart" icon={<ShoppingCartIcon />} />
-          <BottomNavigationAction onClick={() => navigate("/orders")} label="Orders" icon={<RamenDiningIcon />} />
+          <BottomNavigationAction onClick={() => navigate("/")} label="Menu" icon={<Badge color="primary" variant="dot" invisible={menuInvisible}>
+            <ImportContactsIcon />          </Badge>
+          } />
+          <BottomNavigationAction onClick={() => navigate("/cart")} label="Cart" icon={<Badge color="primary" variant="dot" invisible={cartInvisible}><ShoppingCartIcon /></Badge>} />
+          <BottomNavigationAction onClick={() => navigate("/orders")} label="Orders" icon={<Badge color="primary" variant="dot" invisible={ordersInvisible}><RamenDiningIcon /></Badge>} />
           <BottomNavigationAction label="Profile" icon={
             <>
               <SignedOut>
@@ -299,7 +313,7 @@ function CallCanteenIcon() {
   );
 }
 
-function FeedbackIcon(){
+function FeedbackIcon() {
 
 
   const [isFeedbackModalOpen, setFeedbackModalOpen] = useState(false);

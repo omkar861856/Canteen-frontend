@@ -1,150 +1,240 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Typography,
   Box,
   Paper,
   Button,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
 } from "@mui/material";
 import { useAppSelector, useAppDispatch } from "../store/hooks/hooks";
-import { Order } from "../store/slices/ordersSlice";
-import { useUser } from "@clerk/clerk-react";
 import { fetchOrdersByUserId } from "../store/slices/ordersSlice";
+import { useUser } from "@clerk/clerk-react";
+import { Fragment } from "react";
+
+interface Order {
+  orderId: string;
+  status: string;
+  items: Array<{
+    _id: string;
+    name: string;
+    quantity: number;
+    price: number;
+    preparationTime: number;
+  }>;
+  totalPrice: number;
+  addressDetails?: {
+    cabinName?: string;
+    extraInfo?: string;
+    specialInstructions?: string;
+  };
+  createdAt: string;
+  completedAt?: string;
+  orderedAt?: string;
+}
 
 const Orders = () => {
   const { orders } = useAppSelector((state) => state.orders);
   const dispatch = useAppDispatch();
-  const socketOrder = useAppSelector(state=>state.socket.orderPage)
 
   const { user } = useUser();
-  const userId = user?.primaryEmailAddress?.emailAddress;
+  const userId = user?.primaryEmailAddress?.emailAddress || "";
 
-  const [currentPendingPage, setCurrentPendingPage] = useState(1);
-  const [currentCompletedPage, setCurrentCompletedPage] = useState(1);
+  const [pendingCurrentPage, setPendingCurrentPage] = useState(1);
+  const [completedCurrentPage, setCompletedCurrentPage] = useState(1);
   const ordersPerPage = 5;
 
-  const currentOrders = orders.filter((order) => order.status === "pending");
-  const previousOrders = orders.filter((order) => order.status === "completed");
-
-  // Calculate Pagination
-  const getPaginatedOrders = (orders: Order[], page: number) => {
-    const startIndex = (page - 1) * ordersPerPage;
-    const endIndex = startIndex + ordersPerPage;
-    return orders.slice(startIndex, endIndex);
-  };
-
+  // Fetch orders on mount or userId change
   useEffect(() => {
     if (userId) {
       dispatch(fetchOrdersByUserId(userId));
     }
-  }, [userId, dispatch, socketOrder]);
+  }, [userId, dispatch]);
 
-  const pendingOrdersToShow = getPaginatedOrders(currentOrders, currentPendingPage);
-  const completedOrdersToShow = getPaginatedOrders(previousOrders, currentCompletedPage);
+  // Filter orders into pending and completed
+  const pendingOrders = orders.filter((order: any) => order.status === "pending");
+  const completedOrders = orders.filter((order: any) => order.status === "completed");
 
-  const totalPendingPages = Math.ceil(currentOrders.length / ordersPerPage);
-  const totalCompletedPages = Math.ceil(previousOrders.length / ordersPerPage);
+  // Pagination Logic
+  const getPaginatedOrders = (orders: any, page: number) => {
+    const startIndex = (page - 1) * ordersPerPage;
+    return orders.slice(startIndex, startIndex + ordersPerPage);
+  };
+
+  const paginatedPendingOrders = getPaginatedOrders(pendingOrders, pendingCurrentPage);
+  const paginatedCompletedOrders = getPaginatedOrders(completedOrders, completedCurrentPage);
+
+  const pendingTotalPages = Math.ceil(pendingOrders.length / ordersPerPage);
+  const completedTotalPages = Math.ceil(completedOrders.length / ordersPerPage);
+
+  const renderOrderList = (orderList: any, title: string) => (
+    <>
+      <Typography variant="h5" gutterBottom>
+        {title}
+      </Typography>
+      {orderList.map((order:any) => {
+        const {
+          orderId,
+          status,
+          items,
+          totalPrice,
+          addressDetails,
+          completedAt,
+          orderedAt,
+          cabinName,
+          specialInstructions, 
+          extraInfo
+        } = order;
+
+        // const { cabinName, extraInfo, specialInstructions } = addressDetails || {};
+
+        return (
+          <Paper
+            key={orderId}
+            sx={{
+              padding: 2,
+              marginBottom: 2,
+              boxShadow: 3,
+              borderLeft: `6px solid ${
+                status === "pending"
+                  ? "orange"
+                  : status === "completed"
+                  ? "green"
+                  : "red"
+              }`,
+            }}
+          >
+            <Typography variant="body1">
+              <strong>Order ID:</strong> {orderId}
+            </Typography>
+            <Typography variant="body1">
+              <strong>Status:</strong>{" "}
+              <span
+                style={{
+                  color:
+                    status === "pending"
+                      ? "orange"
+                      : status === "completed"
+                      ? "green"
+                      : "red",
+                }}
+              >
+                {status.toUpperCase()}
+              </span>
+            </Typography>
+            <Typography variant="body1">
+              <strong>Cabin:</strong> {cabinName || "N/A"}
+            </Typography>
+            {extraInfo && (
+              <Typography variant="body2" color="textSecondary">
+                <strong>Extra Info:</strong> {extraInfo}
+              </Typography>
+            )}
+            {specialInstructions && (
+              <Typography variant="body2" color="textSecondary">
+                <strong>Special Instructions:</strong> {specialInstructions}
+              </Typography>
+            )}
+            <Typography variant="body1">
+              <strong>Total Price:</strong> ₹{totalPrice || 0}
+            </Typography>
+            <Typography variant="body1">
+              <strong>
+                {status === "completed"
+                  ? "Completed At:"
+                  : status === "pending"
+                  ? "Ordered At:"
+                  : "Cancelled At:"}
+              </strong>{" "}
+              {new Date(status === "completed" ? completedAt! : orderedAt!).toLocaleString()}
+            </Typography>
+            <Typography variant="body1" sx={{ fontWeight: "bold", marginTop: 2 }}>
+              Items:
+            </Typography>
+            <List>
+              {items.map((item:any) => (
+                <Fragment key={item._id}>
+                  <ListItem>
+                    <ListItemText
+                      primary={`${item.name} (x${item.quantity})`}
+                      secondary={`Price: ₹${item.price}`}
+                    />
+                  </ListItem>
+                  <Divider />
+                </Fragment>
+              ))}
+            </List>
+          </Paper>
+        );
+      })}
+    </>
+  );
 
   return (
     <Box sx={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
-      {/* Pending Orders Section */}
       <Typography variant="h4" gutterBottom>
-        Pending Orders
+        All Orders
       </Typography>
-      {pendingOrdersToShow.map((order) => (
-        <Paper key={order.orderId} sx={{ padding: 2, marginBottom: 2 }}>
-          <Typography variant="body1">
-            <strong>Order ID:</strong> {order.orderId}
-          </Typography>
-          <Typography variant="body1">
-            <strong>Total Price:</strong> ₹ {order.totalPrice}
-          </Typography>
-          <Typography variant="body1">
-            <strong>Ordered At:</strong>{" "}
-            {new Date(order.orderedAt ?? "").toLocaleDateString()}{" "}
-            {new Date(order.orderedAt ?? "").toLocaleTimeString()}
-          </Typography>
-          <Typography variant="body1" color="warning.main">
-            <strong>Status:</strong> Order Preparing
-          </Typography>
-        </Paper>
-      ))}
-      {/* Pagination Controls for Pending Orders */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginTop: 2,
-          alignItems: "center",
-        }}
-      >
-        <Button
-          variant="outlined"
-          onClick={() => setCurrentPendingPage((prev) => prev - 1)}
-          disabled={currentPendingPage === 1}
+      {renderOrderList(paginatedPendingOrders, "Pending Orders")}
+      {pendingOrders.length > 0 && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 2,
+          }}
         >
-          Previous
-        </Button>
-        <Typography>
-          Page {currentPendingPage} of {totalPendingPages}
-        </Typography>
-        <Button
-          variant="outlined"
-          onClick={() => setCurrentPendingPage((prev) => prev + 1)}
-          disabled={currentPendingPage === totalPendingPages}
+          <Button
+            variant="outlined"
+            onClick={() => setPendingCurrentPage((prev) => prev - 1)}
+            disabled={pendingCurrentPage === 1}
+          >
+            Previous
+          </Button>
+          <Typography>
+            Page {pendingCurrentPage} of {pendingTotalPages}
+          </Typography>
+          <Button
+            variant="outlined"
+            onClick={() => setPendingCurrentPage((prev) => prev + 1)}
+            disabled={pendingCurrentPage === pendingTotalPages}
+          >
+            Next
+          </Button>
+        </Box>
+      )}
+      {renderOrderList(paginatedCompletedOrders, "Completed Orders")}
+      {completedOrders.length > 0 && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 2,
+          }}
         >
-          Next
-        </Button>
-      </Box>
-
-      {/* Completed Orders Section */}
-      <Typography variant="h4" gutterBottom sx={{ marginTop: 4 }}>
-        Completed Orders
-      </Typography>
-      {completedOrdersToShow.map((order) => (
-        <Paper key={order.orderId} sx={{ padding: 2, marginBottom: 2 }}>
-          <Typography variant="body1">
-            <strong>Order ID:</strong> {order.orderId}
+          <Button
+            variant="outlined"
+            onClick={() => setCompletedCurrentPage((prev) => prev - 1)}
+            disabled={completedCurrentPage === 1}
+          >
+            Previous
+          </Button>
+          <Typography>
+            Page {completedCurrentPage} of {completedTotalPages}
           </Typography>
-          <Typography variant="body1">
-            <strong>Total Price:</strong> ₹ {order.totalPrice}
-          </Typography>
-          <Typography variant="body1">
-            <strong>Completed At:</strong>{" "}
-            {new Date(order.completedAt ?? "").toLocaleDateString()}{" "}
-            {new Date(order.completedAt ?? "").toLocaleTimeString()}
-          </Typography>
-          <Typography variant="body1" color="success.main">
-            <strong>Status:</strong> Completed
-          </Typography>
-        </Paper>
-      ))}
-      {/* Pagination Controls for Completed Orders */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginTop: 2,
-          alignItems: "center",
-        }}
-      >
-        <Button
-          variant="outlined"
-          onClick={() => setCurrentCompletedPage((prev) => prev - 1)}
-          disabled={currentCompletedPage === 1}
-        >
-          Previous
-        </Button>
-        <Typography>
-          Page {currentCompletedPage} of {totalCompletedPages}
-        </Typography>
-        <Button
-          variant="outlined"
-          onClick={() => setCurrentCompletedPage((prev) => prev + 1)}
-          disabled={currentCompletedPage === totalCompletedPages}
-        >
-          Next
-        </Button>
-      </Box>
+          <Button
+            variant="outlined"
+            onClick={() => setCompletedCurrentPage((prev) => prev + 1)}
+            disabled={completedCurrentPage === completedTotalPages}
+          >
+            Next
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 };

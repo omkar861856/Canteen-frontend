@@ -14,9 +14,11 @@ import { setAddressDetails } from "../store/slices/ordersSlice";
 const ModalFormWithVoiceNote = ({
   open,
   onClose,
+  displayRazorpay
 }: {
   open: boolean;
   onClose: () => void;
+  displayRazorpay: ()=> void;
 }) => {
 
   const dispatch = useAppDispatch()
@@ -33,19 +35,8 @@ const ModalFormWithVoiceNote = ({
   };
 
   const handleFormSubmit = async () => {
-
-    // let audioBlobBase64;
-
-    // if (audioBlob) {
-
-    //   audioBlobBase64 = await serializeBlob(audioBlob); // Serialize the blob
-
-    // }
-    // const finalFormData = {
-    //   ...formDataRef.current,
-    //   audioBlob: audioBlobBase64 || null,
-    // };
     dispatch(setAddressDetails(formDataRef.current)); // Store address details in Redux
+    displayRazorpay();
     onClose();
   };
 
@@ -149,7 +140,7 @@ const ModalFormWithVoiceNote = ({
               onClick={handleFormSubmit}
               sx={{ flex: 1 }}
             >
-              Submit
+              Proceed to Checkout
             </Button>
           </Box>
         </form>
