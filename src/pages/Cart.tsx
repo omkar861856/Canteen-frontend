@@ -29,7 +29,7 @@ const Cart = () => {
   const totalPrice = cart.reduce((total:number, item) => total + item.price * item.quantity, 0);
   const totalPreparationTime = calculateTotalDeliveryTime(cart);
   const userPhoneNumber = user.user?.primaryPhoneNumber?.phoneNumber;
-  const addressDetails = useAppSelector((state) => state.orders.addressDetails);
+  // const addressDetails = useAppSelector((state) => state.orders.addressDetails);
 
 
   // for modal form
@@ -43,7 +43,7 @@ const Cart = () => {
   // const handleOpenFeedback = () => setOpenFeedback(true);
   // const handleCloseFeedback = () => setOpenFeedback(false);
    const [checkout, setCheckout] = useState(false);
-
+console.log(checkout)
 
   function calculateTotalDeliveryTime(cart: CartItem[]) {
     if (!Array.isArray(cart) || cart.length === 0) {

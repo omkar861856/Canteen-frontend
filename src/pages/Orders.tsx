@@ -14,27 +14,6 @@ import { fetchOrdersByUserId } from "../store/slices/ordersSlice";
 import { useUser } from "@clerk/clerk-react";
 import { Fragment } from "react";
 
-interface Order {
-  orderId: string;
-  status: string;
-  items: Array<{
-    _id: string;
-    name: string;
-    quantity: number;
-    price: number;
-    preparationTime: number;
-  }>;
-  totalPrice: number;
-  addressDetails?: {
-    cabinName?: string;
-    extraInfo?: string;
-    specialInstructions?: string;
-  };
-  createdAt: string;
-  completedAt?: string;
-  orderedAt?: string;
-}
-
 const Orders = () => {
   const { orders } = useAppSelector((state) => state.orders);
   const dispatch = useAppDispatch();
@@ -80,7 +59,6 @@ const Orders = () => {
           status,
           items,
           totalPrice,
-          addressDetails,
           completedAt,
           orderedAt,
           cabinName,

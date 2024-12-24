@@ -57,14 +57,13 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const user = useUser();
 
-  const [invisible, setInvisible] = useState(false);
-  const [menuInvisible, setMenuInvisible] = useState(false)
-  const [cartInvisible, setCartInvisible] = useState(false)
-  const [ordersInvisible, setOrdersInvisible] = useState(false)
+  const [menuInvisible] = useState(false)
+  const [cartInvisible] = useState(false)
+  const [ordersInvisible] = useState(false)
 
-  const handleBadgeVisibility = () => {
-    setInvisible(!invisible);
-  };
+  // const handleBadgeVisibility = () => {
+  //   setInvisible(!invisible);
+  // };
 
   useEffect(() => {
     // Use a switch statement to set the value based on the path
