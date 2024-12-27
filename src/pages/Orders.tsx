@@ -10,7 +10,6 @@ import {
   Divider,
 } from "@mui/material";
 import { useAppSelector, useAppDispatch } from "../store/hooks/hooks";
-import { useUser } from "@clerk/clerk-react";
 import { Fragment } from "react";
 import { fetchOrdersByPhone } from "../store/slices/ordersSlice";
 
@@ -22,7 +21,7 @@ const Orders = () => {
   const [pendingCurrentPage, setPendingCurrentPage] = useState(1);
   const [completedCurrentPage, setCompletedCurrentPage] = useState(1);
   const ordersPerPage = 5;
-  const {phone, firstName, lastName} =  useAppSelector(state=>state.auth)
+  const {phone} =  useAppSelector(state=>state.auth)
 
   // Fetch orders on mount or userId change
   useEffect(() => {

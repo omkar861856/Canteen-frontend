@@ -41,7 +41,7 @@ const Cart = () => {
 
   // const handleOpenFeedback = () => setOpenFeedback(true);
   // const handleCloseFeedback = () => setOpenFeedback(false);
-   const [checkout, setCheckout] = useState(false);
+   const [, setCheckout] = useState(false);
 
   function calculateTotalDeliveryTime(cart: CartItem[]) {
     if (!Array.isArray(cart) || cart.length === 0) {

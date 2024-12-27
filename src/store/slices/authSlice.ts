@@ -123,7 +123,7 @@ const authSlice = createSlice({
     extraReducers: (builder) => {
         builder
             // Signup logic
-            .addCase(signupUser.pending, (state) => {
+            .addCase(signupUser.pending, () => {
                 // Optionally handle loading state for signup
             })
             .addCase(
@@ -146,7 +146,7 @@ const authSlice = createSlice({
             })
 
             // Login logic
-            .addCase(loginUser.pending, (state) => {
+            .addCase(loginUser.pending, () => {
                 // Optionally handle loading state for login
             })
             .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
@@ -168,7 +168,7 @@ const authSlice = createSlice({
             })
 
             // Logout logic
-            .addCase(logoutUser.pending, (state) => {
+            .addCase(logoutUser.pending, () => {
                 // Optionally handle loading state for logout
             })
             .addCase(logoutUser.fulfilled, (state) => {
@@ -179,7 +179,7 @@ const authSlice = createSlice({
                 state.otp = null;
                 state.otpExpiresAt = null;
             })
-            .addCase(logoutUser.rejected, (state, action) => {
+            .addCase(logoutUser.rejected, (_state, action) => {
                 console.error(action.payload || 'Error during logout');
             });
     },

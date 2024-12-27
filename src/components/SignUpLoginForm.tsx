@@ -7,7 +7,7 @@ import './SignUpLoginForm.css';
 import { apiUrl } from '../Layout';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks/hooks';
-import { logout, signupUser, setToken, login } from '../store/slices/authSlice';
+import { logout, setToken, login } from '../store/slices/authSlice';
 
 const SignUpLoginForm = () => {
     const [isOtpSent, setIsOtpSent] = useState(false);
@@ -19,8 +19,8 @@ const SignUpLoginForm = () => {
     const [lastName, setLastName] = useState("");
     const { isLoggedIn } = useAppSelector(state => state.auth);
 
-    const [timer, setTimer] = useState(30); // Initial timer duration
-    const [isButtonVisible, setIsButtonVisible] = useState(false); // Control button visibility
+    const [, setTimer] = useState(30); // Initial timer duration
+    const [isButtonVisible] = useState(false); // Control button visibility
     const [otpCount, setOtpCount] = useState(0); // Tracks OTPs sent
     const [cooldown, setCooldown] = useState(0); // Cooldown period (seconds)
 
@@ -51,7 +51,7 @@ const SignUpLoginForm = () => {
         setPhoneNumber(data.phone);
 
         try {
-            const response = await axios.post(`${apiUrl}/auth/signup/send-otp`, {
+             await axios.post(`${apiUrl}/auth/signup/send-otp`, {
                 firstName: data.firstName,
                 lastName: data.lastName,
                 phone: data.phone

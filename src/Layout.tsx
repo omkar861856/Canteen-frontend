@@ -11,11 +11,10 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import RamenDiningIcon from '@mui/icons-material/RamenDining';
 import ImportContactsIcon from '@mui/icons-material/ImportContacts';
 import { io } from 'socket.io-client';
-import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
 import Marquee from "react-fast-marquee";
 import { Snackbar, Menu, MenuItem, IconButton, Badge, Typography } from '@mui/material';
 import { useAppSelector } from './store/hooks/hooks';
-import { addNotification, clearNotifications } from './store/slices/notificationsSlice';
+import {  clearNotifications } from './store/slices/notificationsSlice';
 import { useLocation } from 'react-router-dom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import RateReviewIcon from '@mui/icons-material/RateReview';
@@ -26,11 +25,11 @@ import { setKitchenStatus } from './store/slices/appSlice';
 import PhoneEnabledIcon from '@mui/icons-material/PhoneEnabled';
 import PhoneDisabledIcon from '@mui/icons-material/PhoneDisabled';
 
-const notificationSound = new Audio('src/audios/simple-notification-152054.mp3');
+// const notificationSound = new Audio('src/audios/simple-notification-152054.mp3');
 
-function playNotificationSound() {
-  notificationSound.play();
-}
+// function playNotificationSound() {
+//   notificationSound.play();
+// }
 
 interface LayoutProps {
   children: React.ReactNode;
