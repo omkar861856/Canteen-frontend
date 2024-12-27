@@ -7,7 +7,6 @@ import { incrementCart, decrementCart, removeFromCart } from '../store/slices/ca
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
-import { useUser } from '@clerk/clerk-react';
 import { apiUrl } from '../Layout';
 import { savePayment } from '../store/slices/paymentsThunks';
 import { emptyCart } from '../store/slices/cartSlice';
@@ -19,16 +18,16 @@ import ModalForm from '../components/AddressForm';
 import { createOrder, setAddressDetails } from '../store/slices/ordersSlice';
 
 
+
 const Cart = () => {
   const [_, setLoadingSpinner] = useState(false);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const cart = useAppSelector((state: RootState) => state.cart);
-  const user = useUser();
-  const userEmail = user?.user?.primaryEmailAddress?.emailAddress;
   const totalPrice = cart.reduce((total:number, item) => total + item.price * item.quantity, 0);
   const totalPreparationTime = calculateTotalDeliveryTime(cart);
-  const userPhoneNumber = user.user?.primaryPhoneNumber?.phoneNumber;
+  const {firstName, lastName, phone} = useAppSelector(state=>state.auth)
+  const userPhoneNumber = phone
   // const addressDetails = useAppSelector((state) => state.orders.addressDetails);
 
 
@@ -43,7 +42,6 @@ const Cart = () => {
   // const handleOpenFeedback = () => setOpenFeedback(true);
   // const handleCloseFeedback = () => setOpenFeedback(false);
    const [checkout, setCheckout] = useState(false);
-console.log(checkout)
 
   function calculateTotalDeliveryTime(cart: CartItem[]) {
     if (!Array.isArray(cart) || cart.length === 0) {
@@ -123,8 +121,7 @@ console.log(checkout)
 
               const newOrder: Order = {
                 orderId: id,
-                userId: userEmail,
-                userFullName: user.user?.fullName,
+                userFullName: `${firstName} ${lastName}`,
                 userPhoneNumber: userPhoneNumber,
                 items: cart, // Assuming InventoryItem[] is an array of objects
                 status: 'pending',
@@ -149,9 +146,9 @@ console.log(checkout)
             }
           },
           prefill: {
-            name: user?.user?.fullName || 'Guest User',
-            email: userEmail || 'guest@example.com',
-            contact: '9999999999',
+            name: `${firstName} ${lastName}` || 'Guest User',
+            email:  'guest@email.com',
+            contact: phone,
           },
           notes: { address: 'Canteen' },
           theme: { color: '#61dafb' },

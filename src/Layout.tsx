@@ -5,17 +5,14 @@ import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import Paper from '@mui/material/Paper';
 import ColorModeSelect from './pages/shared-theme/ColorModeSelect';
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
 import './Layout.css';
 import { useNavigate } from 'react-router-dom';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import RamenDiningIcon from '@mui/icons-material/RamenDining';
-import { useAppDispatch } from './store/hooks/hooks';
 import ImportContactsIcon from '@mui/icons-material/ImportContacts';
 import { io } from 'socket.io-client';
 import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
 import Marquee from "react-fast-marquee";
-import { update } from './store/slices/socketSlice';
 import { Snackbar, Menu, MenuItem, IconButton, Badge, Typography } from '@mui/material';
 import { useAppSelector } from './store/hooks/hooks';
 import { addNotification, clearNotifications } from './store/slices/notificationsSlice';
@@ -23,8 +20,11 @@ import { useLocation } from 'react-router-dom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import GeneralFeedbackModal from './components/GeneralFeedback';
-import { useUser } from '@clerk/clerk-react';
-
+import AccountBoxIcon from '@mui/icons-material/AccountBox';
+import { useAppDispatch } from './store/hooks/hooks';
+import { setKitchenStatus } from './store/slices/appSlice';
+import PhoneEnabledIcon from '@mui/icons-material/PhoneEnabled';
+import PhoneDisabledIcon from '@mui/icons-material/PhoneDisabled';
 
 const notificationSound = new Audio('src/audios/simple-notification-152054.mp3');
 
@@ -39,7 +39,8 @@ interface LayoutProps {
 // Backend URL link 
 export const apiUrl = import.meta.env.VITE_API_URL;
 export const razorpay_key_id = import.meta.env.VITE_RAZORPAY_KEY_ID;
-export const socket = io(import.meta.env.VITE_SOCKET_API_URL, {
+const socket_url = import.meta.env.VITE_SOCKET_API_URL;
+export const socket = io(`${socket_url}/users`, {
   reconnection: true, // Allow reconnections
   reconnectionAttempts: 5, // Number of attempts before giving up
   reconnectionDelay: 2000, // Delay between reconnection attempts
@@ -51,15 +52,15 @@ export default function Layout({ children }: LayoutProps) {
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const isInitialized = useRef(false); // To ensure logic runs only once per session
-  const dispatch = useAppDispatch();
   const socketRef = useRef(socket);
   const [socketConnection, setSocketConnection] = useState(false)
   const location = useLocation();
-  const user = useUser();
-
+  const dispatch = useAppDispatch()
   const [menuInvisible] = useState(false)
   const [cartInvisible] = useState(false)
   const [ordersInvisible] = useState(false)
+  const { isLoggedIn, phone } = useAppSelector(state => state.auth)
+  const { kitchenStatus } = useAppSelector(state => state.app)
 
   // const handleBadgeVisibility = () => {
   //   setInvisible(!invisible);
@@ -76,6 +77,9 @@ export default function Layout({ children }: LayoutProps) {
         break;
       case '/orders':
         setValue(2);
+        break;
+      case '/profile':
+        setValue(3);
         break;
       default:
         setValue(0); // Default value for unknown paths
@@ -136,33 +140,29 @@ export default function Layout({ children }: LayoutProps) {
   useEffect(() => {
     const socketInstance = socketRef.current;
 
-    if (user?.user?.id) {
-
-      // Register the client with a user ID
-      socket.emit("register", user.user.id);
-
-
-    }
-    // Listen for the broadcast from the server
-    socketInstance.on("order-update-server", () => {
-      dispatch(update());
+    // Register user on connection
+    socketInstance.on('connect', () => {
+      const userId = phone; // Replace with dynamic user ID
+      socketInstance.emit('registerUser', userId);
     });
 
-
-    // Join specific rooms for notifications
-    // socket.emit('joinRoom', 'menu');
-    // socket.emit('joinRoom', 'order');
-    // socket.emit('joinRoom', 'payment');
-
-    // Listen for notifications
-    socketInstance.on('notification', (data: String) => {
-      console.log(data)
-      dispatch(addNotification(data));
-      playNotificationSound()
+    // Listen for new menu items
+    socketInstance.on('menuItemCreated', (menuItem) => {
+      console.log('New menu item:', menuItem);
+      // Update UI to display the new menu item
     });
 
-    socketInstance.on('disconnect', (reason) => {
-      console.log(`Disconnected: ${reason}`);
+    // Listen for order completion
+    socketInstance.on('orderCompleted', (data) => {
+      console.log('Order completed:', data);
+      alert(data.message); // Notify user
+    });
+
+    // Listen for kitchen status updates
+    socketInstance.on('kitchenStatusUpdated', (status) => {
+      console.log('Kitchen status updated:', status);
+      dispatch(setKitchenStatus(status))
+      // Update UI to reflect kitchen status
     });
 
     // Clean up listeners on unmount
@@ -170,22 +170,39 @@ export default function Layout({ children }: LayoutProps) {
       setSocketConnection(false)
 
       socketInstance.off("connect");
-      socketInstance.off("order-update-server");
-      socketInstance.off('notification');
+      socketInstance.off("menuItemCreated");
+      socketInstance.off('orderCompleted');
+      socketInstance.off('kitchenStatusUpdated');
+
 
     };
-  }, [dispatch, socketConnection, user]);
+  }, [dispatch, socketConnection]);
 
   return (
     <Box sx={{ pb: 7 }} ref={ref}>
       <CssBaseline />
       <div id="setting-nav">
         <ColorModeSelect />
-        <div className='icons-right'>
-          <CallCanteenIcon />
-          <FeedbackIcon />
-          <NotificationIconWithMenu />
-        </div>
+        {isLoggedIn
+          ?
+          <div className='icons-right'>
+            <Box sx={{ display: 'flex', alignItems: 'center', padding: 2 }}>
+              <IconButton color="primary">
+                {
+                  kitchenStatus == "online"
+                    ?
+                    <PhoneEnabledIcon />
+                    :
+                    <PhoneDisabledIcon />
+                }
+              </IconButton>
+            </Box>
+            <FeedbackIcon />
+            <NotificationIconWithMenu />
+          </div>
+          :
+          null}
+
       </div>
       <div className="info-nav">
         <Marquee>
@@ -206,16 +223,8 @@ export default function Layout({ children }: LayoutProps) {
           } />
           <BottomNavigationAction onClick={() => navigate("/cart")} label="Cart" icon={<Badge color="primary" variant="dot" invisible={cartInvisible}><ShoppingCartIcon /></Badge>} />
           <BottomNavigationAction onClick={() => navigate("/orders")} label="Orders" icon={<Badge color="primary" variant="dot" invisible={ordersInvisible}><RamenDiningIcon /></Badge>} />
-          <BottomNavigationAction label="Profile" icon={
-            <>
-              <SignedOut>
-                <SignInButton />
-              </SignedOut>
-              <SignedIn>
-                <UserButton />
-              </SignedIn>
-            </>
-          } />
+          <BottomNavigationAction onClick={() => navigate("/profile")} label="Profile" icon={
+            <AccountBoxIcon color={isLoggedIn ? "success" : undefined} />} />
         </BottomNavigation>
       </Paper>
     </Box>
@@ -297,20 +306,6 @@ const NotificationIconWithMenu = () => {
     </Box>
   );
 };
-
-
-function CallCanteenIcon() {
-  function handleClick() {
-    alert('Call button clicked!');
-  }
-  return (
-    <Box sx={{ display: 'flex', alignItems: 'center', padding: 2 }}>
-      <IconButton onClick={handleClick} color="primary">
-        <LocalPhoneIcon />
-      </IconButton>
-    </Box>
-  );
-}
 
 function FeedbackIcon() {
 

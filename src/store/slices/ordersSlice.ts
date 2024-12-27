@@ -6,8 +6,7 @@ import { InventoryItem } from './menuSlice';
 // Define interfaces for orders and their statuses
 export interface Order {
     orderId: string;
-    userId: string | undefined;
-    userPhoneNumber: string | undefined;
+    userPhoneNumber: string | null | undefined;
     userFullName: string | undefined | null;
     items: InventoryItem[];
     status: 'pending' | 'completed' | 'cancelled';
@@ -59,11 +58,11 @@ export const fetchOrders = createAsyncThunk(
 );
 
 // Async thunk to fetch orders
-export const fetchOrdersByUserId = createAsyncThunk(
+export const fetchOrdersByPhone = createAsyncThunk(
   'orders/fetchByUserId',
-  async (userId: string | undefined) => {
+  async (phone: string | undefined) => {
       try {
-          const response = await axios.get(`${apiUrl}/orders/${userId}`);
+          const response = await axios.get(`${apiUrl}/orders/${phone}`);
           return response.data; 
       } catch (error) {
           throw Error('Failed to fetch orders');
@@ -89,7 +88,6 @@ export const createOrder = createAsyncThunk(
   'orders/createOrder',
   async (order: Partial<Order>, thunkAPI) => {
     const state:any = thunkAPI.getState();
-    console.log(state)
     const newOrder = {...order, ...state.orders.addressDetails}
       try {
           const response = await axios.post(`${apiUrl}/orders`, newOrder);
@@ -126,16 +124,16 @@ const ordersSlice = createSlice({
                 state.error = action.error.message;
             })
             // Handle fetch orders by user ID
-            .addCase(fetchOrdersByUserId.pending, (state) => {
+            .addCase(fetchOrdersByPhone.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchOrdersByUserId.fulfilled, (state, action: PayloadAction<Order[]>) => {
+            .addCase(fetchOrdersByPhone.fulfilled, (state, action: PayloadAction<Order[]>) => {
                 state.loading = false;
                 const userOrders = action.payload;
                 state.orders = userOrders; // Replace current orders with the fetched user-specific orders
                 state.pendingOrders = userOrders.filter(order => order.status === 'pending'); // Filter pending orders
             })
-            .addCase(fetchOrdersByUserId.rejected, (state, action) => {
+            .addCase(fetchOrdersByPhone.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message;
             })

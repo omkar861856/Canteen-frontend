@@ -1,32 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Button, Card, CardContent, Grid, Box } from '@mui/material';
-import './Menu.css';
+import {
+  Typography,
+  Card,
+  CardContent,
+  Box,
+  CircularProgress,
+  Button,
+  Grid,
+} from '@mui/material';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { setCart } from '../store/slices/cartSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks/hooks';
-import { fetchInventory, InventoryItem } from '../store/slices/menuSlice';
 import { apiUrl } from '../Layout';
-import { toast, ToastContainer } from 'react-toastify';
-import "react-toastify/dist/ReactToastify.css";
 import axios from 'axios';
+import { InventoryItem } from '../store/slices/menuSlice';
 
-interface MenuItemProps {
-  item: InventoryItem;
-}
-
-const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
+const MenuItem = ({ item }: { item: InventoryItem }) => {
   const dispatch = useAppDispatch();
 
   const addItemToCart = () => {
     const serializedItem = {
       ...item,
-      quantity: 2,
+      quantity: 1,
     };
     dispatch(setCart(serializedItem));
-    notify();
-  };
-
-  const notify = () => {
-    toast.success('Added to Cart!', {
+    toast.success(`${item.name} added to cart!`, {
       position: 'top-center',
     });
   };
@@ -34,141 +33,150 @@ const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
   return (
     <Card
       sx={{
-        height: 'auto',
-        width: '300px',
         display: 'flex',
-        flexDirection: 'column',
-        borderRadius: '10px',
-        boxShadow: 3,
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderRadius: '12px',
+        boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
         padding: 2,
+        transition: 'transform 0.2s ease-in-out',
+        '&:hover': {
+          transform: 'scale(1.03)',
+        },
       }}
     >
-      <ToastContainer />
-      <CardContent
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
+      <img
+        src={`${apiUrl}/inventory/${item.itemId}`}
+        alt={item.name}
+        style={{
+          width: '100px',
+          height: '100px',
+          borderRadius: '12px',
+          marginRight: '16px',
         }}
-      >
-        {/* Layout for Image, Name, and Price */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: 2,
-          }}
+      />
+      <Box sx={{ flex: 1 }}>
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 'bold', marginBottom: '8px' }}
         >
-          {/* Image */}
-          <img
-            src={`${apiUrl}/inventory/${item.itemId}`}
-            alt={item.name}
-            style={{
-              width: '100px',
-              height: '100px',
-              borderRadius: '10px',
-            }}
-          />
-          {/* Name and Price */}
-          <Box
-            sx={{
-              marginLeft: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-            }}
-          >
-            <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
-              {item.name}
-            </Typography>
-            <Typography variant="h6" color="textSecondary">
-              Rs {item.price}
-            </Typography>
-          </Box>
-        </Box>
-        {/* Add to Cart Button */}
+          {item.name}
+        </Typography>
+        <Typography variant="body1" color="textSecondary" sx={{ marginBottom: '12px' }}>
+          ₹{item.price}
+        </Typography>
         <Button
           variant="contained"
           color="primary"
-          sx={{
-            width: '100%',
-            borderRadius: '5px',
-            padding: '10px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-          }}
           onClick={addItemToCart}
+          sx={{
+            borderRadius: '8px',
+            fontWeight: 'bold',
+            textTransform: 'none',
+          }}
         >
           Add to Cart
         </Button>
-      </CardContent>
+      </Box>
     </Card>
   );
 };
 
-
-
 const Menu: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { loading, error } = useAppSelector(state => state.menu);
-  const [inventory, setInventory] = useState([])
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { kitchenStatus } = useAppSelector((state) => state.app); // Access kitchenStatus from the store
 
   useEffect(() => {
-
-    (async () => {
-
-      const response = await axios.get(`${apiUrl}/inventory`);
-      console.log(response.data)
-      setInventory(response.data)
-
-    })()
-
-  }, [])
-
-  useEffect(() => {
-    dispatch(fetchInventory());
-  }, [dispatch]);
+    if (kitchenStatus === 'online') {
+      (async () => {
+        try {
+          const response = await axios.get(`${apiUrl}/inventory`);
+          setInventory(response.data);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setLoading(false);
+        }
+      })();
+    } else {
+      setLoading(false); // Ensure loading state ends even if kitchen is offline
+    }
+  }, [kitchenStatus]);
 
   if (loading) {
-    return <Typography>Loading...</Typography>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
-  if (error) {
-    return <Typography>Error: {error}</Typography>;
+  if (kitchenStatus !== 'online') {
+    return (
+      <Box sx={{ textAlign: 'center', marginTop: '20px' }}>
+        <Typography
+          variant="h6"
+          sx={{ color: 'red', fontWeight: 'bold' }}
+        >
+          The kitchen is currently offline. Please check back later.
+        </Typography>
+      </Box>
+    );
   }
-  // Group items by category
-  const categorizedInventory = Array.isArray(inventory)
-    ? inventory.reduce((acc: Record<string, InventoryItem[]>, item: InventoryItem) => {
+
+  const categorizedInventory = inventory.reduce(
+    (acc: Record<string, InventoryItem[]>, item) => {
       if (!acc[item.category]) {
         acc[item.category] = [];
       }
       acc[item.category].push(item);
       return acc;
-    }, {})
-    : {};
+    },
+    {}
+  );
 
   return (
     <Box sx={{ padding: '20px', maxWidth: '1200px', margin: 'auto' }}>
-      <Typography variant="h5" gutterBottom>
-        Menu
+      <ToastContainer />
+      <Typography
+        variant="h4"
+        gutterBottom
+        sx={{
+          textAlign: 'center',
+          fontWeight: 'bold',
+          color: '#1976d2',
+          marginBottom: '20px',
+        }}
+      >
+        Explore Our Menu
       </Typography>
       <hr />
-      {categorizedInventory &&
-        Object.keys(categorizedInventory).map((category) => (
-          <Box key={category} sx={{ marginBottom: '20px' }}>
-            <Typography variant="h6" color="primary" gutterBottom>
-              {category.charAt(0).toUpperCase() + category.slice(1)}
-            </Typography>
-            <Grid container spacing={3}>
-              {categorizedInventory[category].map((item: InventoryItem) => (
-                <Grid item xs={12} sm={6} md={4} key={item.itemId}>
-                  <MenuItem item={item} />
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        ))}
+      {Object.keys(categorizedInventory).map((category) => (
+        <Box key={category} sx={{ marginBottom: '40px' }}>
+          <Typography
+            variant="h5"
+            sx={{
+              color: '#f57c00',
+              fontWeight: 'bold',
+              marginBottom: '10px',
+              textTransform: 'uppercase',
+            }}
+          >
+            {category}
+          </Typography>
+          <Grid container spacing={2}>
+            {categorizedInventory[category].map((item) => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={item.itemId}>
+                <MenuItem item={item} />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      ))}
     </Box>
   );
 };
 
 export default Menu;
+

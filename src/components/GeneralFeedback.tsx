@@ -13,7 +13,7 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { useAppDispatch } from '../store/hooks/hooks';
 import { sendFeedback } from '../store/slices/generaFeedbackSlice';
-import { useUser } from '@clerk/clerk-react';
+import { useAppSelector } from '../store/hooks/hooks';
 
 interface FeedbackFormValues {
     feedback: string;
@@ -30,18 +30,18 @@ const GeneralFeedbackModal: React.FC<GeneralFeedbackModalProps> = ({ open, onClo
 
     const dispatch = useAppDispatch();
 
-    const user = useUser()    
-
     const { handleSubmit, control, reset } = useForm<FeedbackFormValues>({
         defaultValues: {
             feedback: '',
-            rating: 3,
+            rating: 4,
             fullName: "Guest",
         },
     });
+    
+    const {firstName, lastName} = useAppSelector(state=>state.auth)
 
     const handleFormSubmit = (data: FeedbackFormValues) => {
-        const updated = {...data, fullName: user?.user?.fullName}
+        const updated = {...data, fullName: `${firstName} ${lastName}`}
         dispatch(sendFeedback(updated))
         reset();
         onClose();
