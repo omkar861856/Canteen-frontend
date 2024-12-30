@@ -6,9 +6,7 @@ import ProtectedRoute from './ProtectedRoute';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 import ProfilePage from './pages/Profile';
-
-
-
+import ErrorBoundary from './ErrorBoundary';
 
 
 const App = () => {
@@ -19,47 +17,60 @@ const App = () => {
       <Route
         path='/:kitchenId/signin'
         element={
-          <SignInPage />
+          <ErrorBoundary>
+            <SignInPage />
+          </ErrorBoundary>
+
         }
       />
       <Route
         path='/:kitchenId/signup'
         element={
-          <SignUpPage />
+          <ErrorBoundary>
+            <SignUpPage />
+          </ErrorBoundary>
         }
       />
       <Route
 
         path="/:kitchenId/profile"
         element={
-          <ProtectedRoute>
-            <ProfilePage />
-          </ProtectedRoute>
+          <ErrorBoundary>
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          </ErrorBoundary>
         }
 
       />
       <Route
         path="/:kitchenId"
         element={
-          <ProtectedRoute>
-            <Menu />
-          </ProtectedRoute>
+          <ErrorBoundary>
+            <ProtectedRoute>
+              <Menu />
+            </ProtectedRoute>
+          </ErrorBoundary>
         }
       />
       <Route
         path="/:kitchenId/cart"
         element={
-          <ProtectedRoute>
-            <Cart />
-          </ProtectedRoute>
+          <ErrorBoundary>
+            <ProtectedRoute>
+              <Cart />
+            </ProtectedRoute>
+          </ErrorBoundary>
         }
       />
       <Route
         path="/:kitchenId/orders"
         element={
-          <ProtectedRoute>
-            <Orders />
-          </ProtectedRoute>
+          <ErrorBoundary>
+            <ProtectedRoute>
+              <Orders />
+            </ProtectedRoute>
+          </ErrorBoundary>
         }
       />
     </Routes>
