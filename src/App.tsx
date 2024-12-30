@@ -73,6 +73,7 @@ const App = () => {
           </ErrorBoundary>
         }
       />
+      <Route path="*" element={<div>Page Not Found</div>} />
     </Routes>
   );
 };
