@@ -174,13 +174,13 @@ const authSlice = createSlice({
             .addCase(logoutUser.rejected, (_state, action) => {
                 console.error(action.payload || 'Error during logout');
             })
-            .addCase(getIsLoggedInStatus.pending, (state) => {
+            .addCase(getIsLoggedInStatus.pending, () => {
                 
             })
             .addCase(getIsLoggedInStatus.fulfilled, (state, action: PayloadAction<boolean>) => {
                 state.isLoggedIn = action.payload;
             })
-            .addCase(getIsLoggedInStatus.rejected, (state, action) => {
+            .addCase(getIsLoggedInStatus.rejected, (state) => {
                  state.isLoggedIn = false;
             })
     },
