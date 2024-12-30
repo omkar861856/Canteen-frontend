@@ -16,6 +16,7 @@ import { fetchOrdersByPhone } from "../store/slices/ordersSlice";
 const Orders = () => {
   const { orders } = useAppSelector((state) => state.orders);
   const dispatch = useAppDispatch();
+  const {notifications} = useAppSelector(state=>state.notifications)
 
 
   const [pendingCurrentPage, setPendingCurrentPage] = useState(1);
@@ -23,12 +24,14 @@ const Orders = () => {
   const ordersPerPage = 5;
   const {phone} =  useAppSelector(state=>state.auth)
 
+
+
   // Fetch orders on mount or userId change
   useEffect(() => {
     if (phone) {
       dispatch(fetchOrdersByPhone(phone));
     }
-  }, [phone, dispatch]);
+  }, [phone, dispatch, notifications]);
 
   // Filter orders into pending and completed
   const pendingOrders = orders.filter((order: any) => order.status === "pending");

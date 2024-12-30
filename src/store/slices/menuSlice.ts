@@ -2,6 +2,15 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { apiUrl } from '../../Layout';
+// to extract kitchenId from url
+function getFirstPathOrEndpoint(pathname:string) {
+  // Remove leading and trailing slashes, then split the pathname
+  const parts = pathname.replace(/^\/|\/$/g, '').split('/');
+  // Return the first part of the split array
+  return parts[0];
+}
+
+const kitchenId = getFirstPathOrEndpoint(location.pathname)
 
 export interface InventoryItem {
   itemId: string;
@@ -31,7 +40,7 @@ const initialState: InventoryState = {
 export const fetchInventory = createAsyncThunk<InventoryItem[]>(
   'menu/fetchInventory',
   async () => {
-    const response = await axios.get(`${apiUrl}/inventory`);
+    const response = await axios.post(`${apiUrl}/inventory/kitchen`, {kitchenId});
     return response.data; 
   }
 );

@@ -10,6 +10,8 @@ import { logoutUser } from "../store/slices/authSlice";
 const ProfilePage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate()
+  const { kitchenId, kitchenName } = useAppSelector(state => state.app)
+
 
   const handleResetStore = () => {
     dispatch({ type: 'RESET_STORE' });
@@ -23,7 +25,7 @@ const ProfilePage: React.FC = () => {
     await dispatch(logoutUser(phone));
     handleResetStore()
     toast.success('Logoutsuccessful!');
-    navigate('/signin')
+    navigate(`/${kitchenId}/signin`)
   };
 
   return (
@@ -52,6 +54,9 @@ const ProfilePage: React.FC = () => {
         </Typography>
         <Typography variant="body1" sx={{ mb: 2 }}>
           <strong>Phone Number:</strong> {phone}
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 2 }}>
+          <strong>Connected to:</strong> {kitchenName}
         </Typography>
         <Button
           variant="contained"

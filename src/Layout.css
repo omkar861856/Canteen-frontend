@@ -14,3 +14,8 @@
 .icons-right{
     display: flex;
 }
+
+.info-nav{
+    display: grid;
+    grid-template-columns: auto 1fr;
+}

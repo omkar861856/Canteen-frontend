@@ -47,9 +47,12 @@ const initialState: OrdersState = {
 // Async thunk to fetch orders
 export const fetchOrders = createAsyncThunk(
     'orders/fetchAll',
-    async () => {
+    async (_,thunkAPI) => {
+        const store:any = thunkAPI.getState()
+        const {kitchenId} = store.app;
         try {
-            const response = await axios.get(`${apiUrl}/orders`);
+            const response = await axios.get(`${apiUrl}/orders/${kitchenId}`);
+            console.log(response.data)
             return response.data; // Assuming the response contains the orders in the "orders" field
         } catch (error) {
             throw Error('Failed to fetch orders');
@@ -60,9 +63,11 @@ export const fetchOrders = createAsyncThunk(
 // Async thunk to fetch orders
 export const fetchOrdersByPhone = createAsyncThunk(
   'orders/fetchByUserId',
-  async (phone: string | undefined) => {
+  async (phone: string | undefined, thunkAPI) => {
+    const store:any = thunkAPI.getState()
+    const {kitchenId} = store.app;
       try {
-          const response = await axios.get(`${apiUrl}/orders/${phone}`);
+          const response = await axios.get(`${apiUrl}/orders/${phone}/${kitchenId}`);
           return response.data; 
       } catch (error) {
           throw Error('Failed to fetch orders');
@@ -88,7 +93,9 @@ export const createOrder = createAsyncThunk(
   'orders/createOrder',
   async (order: Partial<Order>, thunkAPI) => {
     const state:any = thunkAPI.getState();
-    const newOrder = {...order, ...state.orders.addressDetails}
+    const {addressDetails} = state.orders
+    const {kitchenId} = state.app
+    const newOrder = {...order, ...addressDetails, kitchenId}
       try {
           const response = await axios.post(`${apiUrl}/orders`, newOrder);
           return response.data; 

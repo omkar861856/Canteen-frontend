@@ -23,6 +23,7 @@ const SignUpLoginForm = () => {
     const [isButtonVisible] = useState(false); // Control button visibility
     const [otpCount, setOtpCount] = useState(0); // Tracks OTPs sent
     const [cooldown, setCooldown] = useState(0); // Cooldown period (seconds)
+    const {kitchenId} = useAppSelector(state=>state.app)
 
     const startCooldown = (duration:number) => {
         setCooldown(duration);
@@ -54,7 +55,8 @@ const SignUpLoginForm = () => {
              await axios.post(`${apiUrl}/auth/signup/send-otp`, {
                 firstName: data.firstName,
                 lastName: data.lastName,
-                phone: data.phone
+                phone: data.phone,
+                connectedKitchen: kitchenId
             });
 
             toast.success('OTP sent successfully!');
@@ -71,7 +73,7 @@ const SignUpLoginForm = () => {
         } catch (err: any) {
             if (err.response?.status === 409) {
                 toast.error('Phone number already registered - Sign In');
-                navigate('/signin');
+                navigate(`/${kitchenId}/signin`);
             } else {
                 toast.error('Error sending OTP. Please try again.');
             }
@@ -87,7 +89,7 @@ const SignUpLoginForm = () => {
 
             dispatch(setToken(res.data.token));
             dispatch(login(res.data.user));
-            navigate('/');
+            navigate(`/${kitchenId}`);
             toast.success('Signup successful!');
             reset();
         } catch (err) {
@@ -162,7 +164,7 @@ const SignUpLoginForm = () => {
                 </div>
             )}
             <h5>
-                <a id='signin' onClick={() => navigate('/signin')}>Sign in</a>
+                <a id='signin' onClick={() => navigate('/:kitchenId/signin')}>Sign in</a>
                 &nbsp;
                 If you already have an account.
             </h5>

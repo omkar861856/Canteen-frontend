@@ -14,22 +14,23 @@ import { io } from 'socket.io-client';
 import Marquee from "react-fast-marquee";
 import { Snackbar, Menu, MenuItem, IconButton, Badge, Typography } from '@mui/material';
 import { useAppSelector } from './store/hooks/hooks';
-import {  clearNotifications } from './store/slices/notificationsSlice';
+import { addNotification, clearNotifications } from './store/slices/notificationsSlice';
 import { useLocation } from 'react-router-dom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import GeneralFeedbackModal from './components/GeneralFeedback';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import { useAppDispatch } from './store/hooks/hooks';
-import { setKitchenStatus } from './store/slices/appSlice';
+import { fetchKitchenStatus, setKitchenStatus } from './store/slices/appSlice';
 import PhoneEnabledIcon from '@mui/icons-material/PhoneEnabled';
 import PhoneDisabledIcon from '@mui/icons-material/PhoneDisabled';
+import GoogleTranslate from './components/GoogleTranslate';
 
-// const notificationSound = new Audio('src/audios/simple-notification-152054.mp3');
+const notificationSound = new Audio('src/audios/simple-notification-152054.mp3');
 
-// function playNotificationSound() {
-//   notificationSound.play();
-// }
+function playNotificationSound() {
+  notificationSound.play();
+}
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -59,25 +60,38 @@ export default function Layout({ children }: LayoutProps) {
   const [cartInvisible] = useState(false)
   const [ordersInvisible] = useState(false)
   const { isLoggedIn, phone } = useAppSelector(state => state.auth)
-  const { kitchenStatus } = useAppSelector(state => state.app)
+  const { kitchenStatus, kitchenNumber } = useAppSelector(state => state.app)
+
+  const { kitchenId } = useAppSelector(state => state.app)
 
   // const handleBadgeVisibility = () => {
   //   setInvisible(!invisible);
   // };
 
+  // function getFirstPathOrEndpoint(pathname:string) {
+  //   // Remove leading and trailing slashes, then split the pathname
+  //   const parts = pathname.replace(/^\/|\/$/g, '').split('/');
+  //   // Return the first part of the split array
+  //   return parts[0];
+  // }
+
+  // const result = getFirstPathOrEndpoint(location.pathname)
+
+  // console.log(result)
+
   useEffect(() => {
     // Use a switch statement to set the value based on the path
     switch (location.pathname) {
-      case '/':
+      case `/:${kitchenId}`:
         setValue(0);
         break;
-      case '/cart':
+      case `/:${kitchenId}/cart`:
         setValue(1);
         break;
-      case '/orders':
+      case `/:${kitchenId}/orders`:
         setValue(2);
         break;
-      case '/profile':
+      case `/:${kitchenId}/profile`:
         setValue(3);
         break;
       default:
@@ -120,6 +134,16 @@ export default function Layout({ children }: LayoutProps) {
     };
   }, []);
 
+  // to fetch the kitchen state 
+  useEffect(() => {
+    if (isLoggedIn) {
+
+      dispatch(fetchKitchenStatus(kitchenId))
+
+
+    }
+  }, [])
+
   useEffect(() => {
     if (ref.current) {
       ref.current.ownerDocument.body.scrollTop = 0;
@@ -148,13 +172,15 @@ export default function Layout({ children }: LayoutProps) {
     // Listen for new menu items
     socketInstance.on('menuItemCreated', (menuItem) => {
       console.log('New menu item:', menuItem);
+      playNotificationSound()
       // Update UI to display the new menu item
     });
 
     // Listen for order completion
     socketInstance.on('orderCompleted', (data) => {
       console.log('Order completed:', data);
-      alert(data.message); // Notify user
+      playNotificationSound()
+      dispatch(addNotification({ type: "order", data: `Your order no ${data.orderId} completed` }))
     });
 
     // Listen for kitchen status updates
@@ -177,6 +203,10 @@ export default function Layout({ children }: LayoutProps) {
     };
   }, [dispatch, socketConnection]);
 
+  function makeCall(phoneNumber: string) {
+    window.location.href = `tel:+91${phoneNumber}`;
+  }
+
   return (
     <Box sx={{ pb: 7 }} ref={ref}>
       <CssBaseline />
@@ -186,15 +216,18 @@ export default function Layout({ children }: LayoutProps) {
           ?
           <div className='icons-right'>
             <Box sx={{ display: 'flex', alignItems: 'center', padding: 2 }}>
-              <IconButton color="primary">
-                {
-                  kitchenStatus == "online"
-                    ?
+              {
+                kitchenStatus
+                  ?
+                  <IconButton onClick={() => makeCall(kitchenNumber)} color="primary">
                     <PhoneEnabledIcon />
-                    :
+                  </IconButton>
+                  :
+                  <IconButton color="primary">
                     <PhoneDisabledIcon />
-                }
-              </IconButton>
+                  </IconButton>
+
+              }
             </Box>
             <FeedbackIcon />
             <NotificationIconWithMenu />
@@ -204,6 +237,7 @@ export default function Layout({ children }: LayoutProps) {
 
       </div>
       <div className="info-nav">
+        <GoogleTranslate />
         <Marquee>
           Canteen will be closed on Sundays
         </Marquee>
@@ -217,12 +251,14 @@ export default function Layout({ children }: LayoutProps) {
             setValue(newValue);
           }}
         >
-          <BottomNavigationAction onClick={() => navigate("/")} label="Menu" icon={<Badge color="primary" variant="dot" invisible={menuInvisible}>
-            <ImportContactsIcon />          </Badge>
+          <BottomNavigationAction onClick={() => navigate(`/${kitchenId}`)} label="Menu" icon={
+            <Badge color="primary" variant="dot" invisible={menuInvisible}>
+              <ImportContactsIcon />
+            </Badge>
           } />
-          <BottomNavigationAction onClick={() => navigate("/cart")} label="Cart" icon={<Badge color="primary" variant="dot" invisible={cartInvisible}><ShoppingCartIcon /></Badge>} />
-          <BottomNavigationAction onClick={() => navigate("/orders")} label="Orders" icon={<Badge color="primary" variant="dot" invisible={ordersInvisible}><RamenDiningIcon /></Badge>} />
-          <BottomNavigationAction onClick={() => navigate("/profile")} label="Profile" icon={
+          <BottomNavigationAction onClick={() => navigate(`/${kitchenId}/cart`)} label="Cart" icon={<Badge color="primary" variant="dot" invisible={cartInvisible}><ShoppingCartIcon /></Badge>} />
+          <BottomNavigationAction onClick={() => navigate(`/${kitchenId}/orders`)} label="Orders" icon={<Badge color="primary" variant="dot" invisible={ordersInvisible}><RamenDiningIcon /></Badge>} />
+          <BottomNavigationAction onClick={() => navigate(`/${kitchenId}/profile`)} label="Profile" icon={
             <AccountBoxIcon color={isLoggedIn ? "success" : undefined} />} />
         </BottomNavigation>
       </Paper>
@@ -286,7 +322,7 @@ const NotificationIconWithMenu = () => {
 
           notifications.map((notification, index) => (
             <MenuItem key={index} onClick={handleSnackbarOpen}>
-              <Typography variant="body2">{notification}</Typography>
+              <Typography variant="body2">{notification.data}</Typography>
             </MenuItem>
           ))
 

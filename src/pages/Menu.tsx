@@ -12,8 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { setCart } from '../store/slices/cartSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks/hooks';
 import { apiUrl } from '../Layout';
-import axios from 'axios';
-import { InventoryItem } from '../store/slices/menuSlice';
+import { fetchInventory, InventoryItem } from '../store/slices/menuSlice';
 
 const MenuItem = ({ item }: { item: InventoryItem }) => {
   const dispatch = useAppDispatch();
@@ -82,16 +81,16 @@ const MenuItem = ({ item }: { item: InventoryItem }) => {
 };
 
 const Menu: React.FC = () => {
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { kitchenStatus } = useAppSelector((state) => state.app); // Access kitchenStatus from the store
-
+  const { inventory } = useAppSelector(state => state.menu)
+  const dispatch = useAppDispatch()
+  
   useEffect(() => {
-    if (kitchenStatus === 'online') {
+    if (kitchenStatus) {
       (async () => {
         try {
-          const response = await axios.get(`${apiUrl}/inventory`);
-          setInventory(response.data);
+          dispatch(fetchInventory())
         } catch (error) {
           console.error(error);
         } finally {
@@ -101,25 +100,12 @@ const Menu: React.FC = () => {
     } else {
       setLoading(false); // Ensure loading state ends even if kitchen is offline
     }
-  }, [kitchenStatus]);
+  }, [kitchenStatus, dispatch]);
 
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
         <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (kitchenStatus !== 'online') {
-    return (
-      <Box sx={{ textAlign: 'center', marginTop: '20px' }}>
-        <Typography
-          variant="h6"
-          sx={{ color: 'red', fontWeight: 'bold' }}
-        >
-          The kitchen is currently offline. Please check back later.
-        </Typography>
       </Box>
     );
   }
@@ -136,44 +122,58 @@ const Menu: React.FC = () => {
   );
 
   return (
-    <Box sx={{ padding: '20px', maxWidth: '1200px', margin: 'auto' }}>
-      <ToastContainer />
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{
-          textAlign: 'center',
-          fontWeight: 'bold',
-          color: '#1976d2',
-          marginBottom: '20px',
-        }}
-      >
-        Explore Our Menu
-      </Typography>
-      <hr />
-      {Object.keys(categorizedInventory).map((category) => (
-        <Box key={category} sx={{ marginBottom: '40px' }}>
+    <div>
+      {kitchenStatus
+        ?
+        <Box sx={{ padding: '20px', maxWidth: '1200px', margin: 'auto' }}>
+          <ToastContainer />
           <Typography
-            variant="h5"
+            variant="h4"
+            gutterBottom
             sx={{
-              color: '#f57c00',
+              textAlign: 'center',
               fontWeight: 'bold',
-              marginBottom: '10px',
-              textTransform: 'uppercase',
+              color: '#1976d2',
+              marginBottom: '20px',
             }}
           >
-            {category}
+            Explore Our Menu
           </Typography>
-          <Grid container spacing={2}>
-            {categorizedInventory[category].map((item) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={item.itemId}>
-                <MenuItem item={item} />
+          <hr />
+          {Object.keys(categorizedInventory).map((category) => (
+            <Box key={category} sx={{ marginBottom: '40px' }}>
+              <Typography
+                variant="h5"
+                sx={{
+                  color: '#f57c00',
+                  fontWeight: 'bold',
+                  marginBottom: '10px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {category}
+              </Typography>
+              <Grid container spacing={2}>
+                {categorizedInventory[category].map((item) => (
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={item.itemId}>
+                    <MenuItem item={item} />
+                  </Grid>
+                ))}
               </Grid>
-            ))}
-          </Grid>
+            </Box>
+          ))}
         </Box>
-      ))}
-    </Box>
+        :
+        <Box sx={{ textAlign: 'center', marginTop: '20px' }}>
+          <Typography
+            variant="h6"
+            sx={{ color: 'red', fontWeight: 'bold' }}
+          >
+            The kitchen is currently offline. Please check back later.
+          </Typography>
+        </Box>
+      }
+    </div>
   );
 };
 

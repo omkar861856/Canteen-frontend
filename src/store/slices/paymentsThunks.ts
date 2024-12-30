@@ -18,12 +18,14 @@ export const fetchPayments = createAsyncThunk(
 
   export const savePayment = createAsyncThunk(
     'payments/savePayment',
-    async (payment: Payment, { rejectWithValue }) => {
+    async (payment: Payment, thunkAPI) => {
+      const state:any = thunkAPI.getState();
+      const {kitchenId} = state.app
       try {
-        const response = await axios.post(`${apiUrl}/payments`, payment);
+        const response = await axios.post(`${apiUrl}/payments`, {...payment, kitchenId});
         return response.data; // Assuming the API returns the saved payment
       } catch (error: any) {
-        return rejectWithValue(error.response?.data || error.message);
+        throw new Error(error)
       }
     }
   );

@@ -26,11 +26,17 @@ const appReducer = combineReducers({
 
   const rootReducer = (state: any, action: any) => {
     if (action.type === 'RESET_STORE') {
-        // Preserve auth.token while resetting everything else
-        const { auth: { token } = {} } = state || {};
-        state = { auth: { token } }; // Retain only token in auth state
-      }
+      // Destructure the parts of the state to preserve
+      const { auth: { token } = {}, app: { kitchenId } = {} } = state || {};
+      
+      // Reset the state but keep `auth.token` and `app.kitchenId`
+      state = {
+        auth: { token },
+        app: { kitchenId },
+      };
+    }
+  
     return appReducer(state, action);
-};
-
-export default rootReducer;
+  };
+  
+  export default rootReducer;

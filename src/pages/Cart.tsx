@@ -18,7 +18,6 @@ import ModalForm from '../components/AddressForm';
 import { createOrder, setAddressDetails } from '../store/slices/ordersSlice';
 
 
-
 const Cart = () => {
   const [_, setLoadingSpinner] = useState(false);
   const dispatch = useAppDispatch();
@@ -29,7 +28,7 @@ const Cart = () => {
   const {firstName, lastName, phone} = useAppSelector(state=>state.auth)
   const userPhoneNumber = phone
   // const addressDetails = useAppSelector((state) => state.orders.addressDetails);
-
+  const {kitchenName, kitchenStatus, kitchenId} = useAppSelector(state=>state.app)
 
   // for modal form
   const [open, setOpen] = useState(false);
@@ -67,7 +66,6 @@ const Cart = () => {
     });
   };
 
-
   const displayRazorpay = async () => {
     setLoadingSpinner(true);
     const isLoaded = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
@@ -92,9 +90,9 @@ const Cart = () => {
           key: 'rzp_test_2Bu02SdOJVriid',
           amount: amount.toString(),
           currency,
-          name: 'Canteen-Ang',
-          description: 'Test Transaction',
-          image: 'data:image/png;base64,....', // Replace with your logo image
+          name: kitchenName,
+          description: 'Payment',
+          image: '', 
           order_id: id,
           handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string; }) => {
             try {
@@ -133,12 +131,11 @@ const Cart = () => {
                 completedAt: null,
                 razorpayPaymentId: paymentData.razorpayPaymentId
               };
-
               await dispatch(createOrder(newOrder))
                   dispatch(setAddressDetails(null))
                   dispatch(emptyCart())
-              navigate('/orders')
-              socket.emit('order-update', { room: 'order', message: "New order created" });
+              navigate(`/${kitchenId}/orders`)
+              socket.emit("orderCreated",{order: newOrder})
 
             } catch (error) {
               console.error('Error verifying payment:', error);
@@ -153,7 +150,6 @@ const Cart = () => {
           notes: { address: 'Canteen' },
           theme: { color: '#61dafb' },
         };
-
         const paymentObject = new window.Razorpay(options);
         paymentObject.open();
       } catch (error) {
@@ -254,6 +250,7 @@ const Cart = () => {
             variant="contained"
             color="secondary"
             fullWidth
+            disabled={!kitchenStatus}
             onClick={() => {
 
               if(cart.length == 0){

@@ -30,6 +30,8 @@ const GeneralFeedbackModal: React.FC<GeneralFeedbackModalProps> = ({ open, onClo
 
     const dispatch = useAppDispatch();
 
+    const {phone} = useAppSelector(state=>state.auth)
+
     const { handleSubmit, control, reset } = useForm<FeedbackFormValues>({
         defaultValues: {
             feedback: '',
@@ -39,9 +41,10 @@ const GeneralFeedbackModal: React.FC<GeneralFeedbackModalProps> = ({ open, onClo
     });
     
     const {firstName, lastName} = useAppSelector(state=>state.auth)
+    const {kitchenId} = useAppSelector(state=>state.app)
 
     const handleFormSubmit = (data: FeedbackFormValues) => {
-        const updated = {...data, fullName: `${firstName} ${lastName}`}
+        const updated = {...data, fullName: `${firstName} ${lastName}`, kitchenId, userId:phone }
         dispatch(sendFeedback(updated))
         reset();
         onClose();

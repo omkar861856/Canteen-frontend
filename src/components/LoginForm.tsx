@@ -8,6 +8,7 @@ import { apiUrl } from '../Layout';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../store/hooks/hooks';
 import { setToken, login } from '../store/slices/authSlice';
+import { useAppSelector } from '../store/hooks/hooks';
 
 const LoginForm = () => {
     const [isOtpSent, setIsOtpSent] = useState(false);
@@ -20,6 +21,7 @@ const LoginForm = () => {
     const { register, handleSubmit, reset, formState: { errors } } = useForm();
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
+    const {kitchenId} = useAppSelector(state=>state.app)
 
     const startCooldown = (duration:number) => {
         setCooldown(duration);
@@ -50,7 +52,7 @@ const LoginForm = () => {
             if (response.data.message === 'Valid Token') {
                 dispatch(login(response.data.user));
                 toast.success('Login successful!');
-                navigate('/');
+                navigate(`/${kitchenId}`);
                 return;
             }
 
@@ -69,7 +71,7 @@ const LoginForm = () => {
         } catch (err: any) {
             if (err.response?.status === 404) {
                 toast.error('No user found - Sign up');
-                setTimeout(() => navigate('/signup'), 3000);
+                setTimeout(() => navigate(`/${kitchenId}/signup`), 3000);
             }
             else if(err.response?.status == 403){
                 toast.error('User already has an active login');
@@ -94,7 +96,7 @@ const LoginForm = () => {
                 token: res.data.token,
                 isLoggedIn: true,
             }));
-            navigate('/');
+            navigate(`/${kitchenId}`);
             toast.success('Login successful!');
             reset();
         } catch (err) {
@@ -143,7 +145,7 @@ const LoginForm = () => {
                 <button type="submit">{isOtpSent ? 'Verify OTP' : 'Sign In'}</button>
             </form>
             <h5>
-                <a id="signup" onClick={() => navigate('/signup')}>Sign up</a>
+                <a id="signup" onClick={() => navigate(`/${kitchenId}/signup`)}>Sign up</a>
                 &nbsp;If you don't have an account.
             </h5>
         </div>
