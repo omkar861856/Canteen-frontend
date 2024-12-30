@@ -96,14 +96,6 @@ const authSlice = createSlice({
     name: 'auth',
     initialState,
     reducers: {
-        logout: (state) => {
-            state.firstName = null;
-            state.lastName = null;
-            state.phone = "";
-            state.isLoggedIn = false;
-            state.otp = null;
-            state.otpExpiresAt = null;
-        },
         setToken: (state, action: PayloadAction<string>) => {
             state.token = action.payload;
         },
@@ -181,9 +173,18 @@ const authSlice = createSlice({
             })
             .addCase(logoutUser.rejected, (_state, action) => {
                 console.error(action.payload || 'Error during logout');
-            });
+            })
+            .addCase(getIsLoggedInStatus.pending, (state) => {
+                
+            })
+            .addCase(getIsLoggedInStatus.fulfilled, (state, action: PayloadAction<boolean>) => {
+                state.isLoggedIn = action.payload;
+            })
+            .addCase(getIsLoggedInStatus.rejected, (state, action) => {
+                 state.isLoggedIn = false;
+            })
     },
 });
 
-export const { logout, setToken, login } = authSlice.actions;
+export const {  setToken, login } = authSlice.actions;
 export default authSlice.reducer;

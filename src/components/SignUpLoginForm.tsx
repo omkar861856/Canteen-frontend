@@ -7,7 +7,7 @@ import './SignUpLoginForm.css';
 import { apiUrl } from '../Layout';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks/hooks';
-import { logout, setToken, login } from '../store/slices/authSlice';
+import { logoutUser, setToken, login } from '../store/slices/authSlice';
 
 const SignUpLoginForm = () => {
     const [isOtpSent, setIsOtpSent] = useState(false);
@@ -17,7 +17,7 @@ const SignUpLoginForm = () => {
     const dispatch = useAppDispatch();
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
-    const { isLoggedIn } = useAppSelector(state => state.auth);
+    const { isLoggedIn, phone } = useAppSelector(state => state.auth);
 
     const [, setTimer] = useState(30); // Initial timer duration
     const [isButtonVisible] = useState(false); // Control button visibility
@@ -106,10 +106,13 @@ const SignUpLoginForm = () => {
         onSendOtp({ firstName, lastName, phone: phoneNumber });
     };
 
-    const onLogout = () => {
-        dispatch(logout());
-        toast.info('Logged out successfully!');
-    };
+    const onLogout = async () => {
+        await dispatch(logoutUser(phone));
+        dispatch({ type: 'RESET_STORE' });
+        toast.success('Logoutsuccessful!');
+        navigate(`/${kitchenId}/signin`)  };
+
+    
 
     return (
         <div className="form-container">

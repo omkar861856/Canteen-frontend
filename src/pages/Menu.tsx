@@ -85,6 +85,8 @@ const Menu: React.FC = () => {
   const { kitchenStatus } = useAppSelector((state) => state.app); // Access kitchenStatus from the store
   const { inventory } = useAppSelector(state => state.menu)
   const dispatch = useAppDispatch()
+
+
   
   useEffect(() => {
     if (kitchenStatus) {
@@ -120,6 +122,8 @@ const Menu: React.FC = () => {
     },
     {}
   );
+
+ 
 
   return (
     <div>

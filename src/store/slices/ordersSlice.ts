@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { apiUrl } from '../../Layout';
 import { InventoryItem } from './menuSlice';
+import { socket } from '../../Layout';
 
 // Define interfaces for orders and their statuses
 export interface Order {
@@ -98,6 +99,7 @@ export const createOrder = createAsyncThunk(
     const newOrder = {...order, ...addressDetails, kitchenId}
       try {
           const response = await axios.post(`${apiUrl}/orders`, newOrder);
+          socket.emit("orderCreated",{order: {...newOrder, cabinName: addressDetails.cabinName}})
           return response.data; 
       } catch (error) {
           throw Error('Failed to fetch orders');

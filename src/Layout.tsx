@@ -25,12 +25,32 @@ import { fetchKitchenStatus, setKitchenStatus } from './store/slices/appSlice';
 import PhoneEnabledIcon from '@mui/icons-material/PhoneEnabled';
 import PhoneDisabledIcon from '@mui/icons-material/PhoneDisabled';
 import GoogleTranslate from './components/GoogleTranslate';
+import { cacheAudioFile } from './utils/cacheAudioFile';
 
-const notificationSound = new Audio('src/audios/simple-notification-152054.mp3');
+const audioUrl = 'public/simple-notification-152054.mp3'
+cacheAudioFile(audioUrl);
 
-function playNotificationSound() {
-  notificationSound.play();
-}
+export const playNotificationSound = async (audioUrl: string) => {
+  if ('caches' in window) {
+    try {
+      const cacheName = 'notification-sounds';
+      const cache = await caches.open(cacheName);
+      const response = await cache.match(audioUrl);
+      console.log(response)
+      if (response) {
+        const audioBlob = await response.blob();
+        const audio = new Audio(URL.createObjectURL(audioBlob));
+        audio.play();
+      } else {
+        console.warn('Audio file not found in cache. Playing from server...');
+        const audio = new Audio(audioUrl);
+        audio.play();
+      }
+    } catch (error) {
+      console.error('Error playing notification sound:', error);
+    }
+  }
+};
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -60,9 +80,8 @@ export default function Layout({ children }: LayoutProps) {
   const [cartInvisible] = useState(false)
   const [ordersInvisible] = useState(false)
   const { isLoggedIn, phone } = useAppSelector(state => state.auth)
-  const { kitchenStatus, kitchenNumber } = useAppSelector(state => state.app)
+  const { kitchenStatus, kitchenNumber, kitchenId } = useAppSelector(state => state.app)
 
-  const { kitchenId } = useAppSelector(state => state.app)
 
   // const handleBadgeVisibility = () => {
   //   setInvisible(!invisible);
@@ -78,6 +97,10 @@ export default function Layout({ children }: LayoutProps) {
   // const result = getFirstPathOrEndpoint(location.pathname)
 
   // console.log(result)
+
+  useEffect(()=>{
+    dispatch(fetchKitchenStatus(kitchenId))
+  },[])
 
   useEffect(() => {
     // Use a switch statement to set the value based on the path
@@ -135,14 +158,7 @@ export default function Layout({ children }: LayoutProps) {
   }, []);
 
   // to fetch the kitchen state 
-  useEffect(() => {
-    if (isLoggedIn) {
 
-      dispatch(fetchKitchenStatus(kitchenId))
-
-
-    }
-  }, [])
 
   useEffect(() => {
     if (ref.current) {
@@ -172,14 +188,14 @@ export default function Layout({ children }: LayoutProps) {
     // Listen for new menu items
     socketInstance.on('menuItemCreated', (menuItem) => {
       console.log('New menu item:', menuItem);
-      playNotificationSound()
+      playNotificationSound(audioUrl)
       // Update UI to display the new menu item
     });
 
     // Listen for order completion
     socketInstance.on('orderCompleted', (data) => {
       console.log('Order completed:', data);
-      playNotificationSound()
+      playNotificationSound(audioUrl)
       dispatch(addNotification({ type: "order", data: `Your order no ${data.orderId} completed` }))
     });
 

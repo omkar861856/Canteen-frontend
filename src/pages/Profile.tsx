@@ -12,8 +12,7 @@ const ProfilePage: React.FC = () => {
   const navigate = useNavigate()
   const { kitchenId, kitchenName } = useAppSelector(state => state.app)
 
-
-  const handleResetStore = () => {
+ const handleResetStore = () => {
     dispatch({ type: 'RESET_STORE' });
 };
 
@@ -28,6 +27,7 @@ const ProfilePage: React.FC = () => {
     navigate(`/${kitchenId}/signin`)
   };
 
+  
   return (
     <Container maxWidth="sm" sx={{ mt: 4 }}>
                     <ToastContainer />

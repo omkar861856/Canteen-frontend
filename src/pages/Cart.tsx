@@ -13,7 +13,6 @@ import { emptyCart } from '../store/slices/cartSlice';
 import { CartItem } from '../store/slices/cartSlice';
 
 import { Order } from '../store/slices/ordersSlice';
-import { socket } from '../Layout';
 import ModalForm from '../components/AddressForm';
 import { createOrder, setAddressDetails } from '../store/slices/ordersSlice';
 
@@ -40,7 +39,8 @@ const Cart = () => {
 
   // const handleOpenFeedback = () => setOpenFeedback(true);
   // const handleCloseFeedback = () => setOpenFeedback(false);
-   const [, setCheckout] = useState(false);
+   const [checkout, setCheckout] = useState(false);
+
 
   function calculateTotalDeliveryTime(cart: CartItem[]) {
     if (!Array.isArray(cart) || cart.length === 0) {
@@ -135,7 +135,6 @@ const Cart = () => {
                   dispatch(setAddressDetails(null))
                   dispatch(emptyCart())
               navigate(`/${kitchenId}/orders`)
-              socket.emit("orderCreated",{order: newOrder})
 
             } catch (error) {
               console.error('Error verifying payment:', error);
@@ -171,6 +170,8 @@ const Cart = () => {
     dispatch(removeFromCart(item));
     toast.info('Removed item from Cart!', { position: 'top-center' });
   };
+
+  
 
 
 
@@ -250,7 +251,7 @@ const Cart = () => {
             variant="contained"
             color="secondary"
             fullWidth
-            disabled={!kitchenStatus}
+            disabled={!kitchenStatus || checkout}
             onClick={() => {
 
               if(cart.length == 0){

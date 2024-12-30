@@ -24,8 +24,6 @@ const Orders = () => {
   const ordersPerPage = 5;
   const {phone} =  useAppSelector(state=>state.auth)
 
-
-
   // Fetch orders on mount or userId change
   useEffect(() => {
     if (phone) {
@@ -150,6 +148,8 @@ const Orders = () => {
       })}
     </>
   );
+
+  
 
   return (
     <Box sx={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
