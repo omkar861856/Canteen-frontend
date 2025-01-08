@@ -164,15 +164,6 @@ export default function Layout({ children }: LayoutProps) {
     if (ref.current) {
       ref.current.ownerDocument.body.scrollTop = 0;
     }
-
-    // Request permission for notifications when the component mounts
-    if (Notification.permission !== 'denied') {
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          console.log('Notification permission granted');
-        }
-      });
-    }
   }, [value]);
 
 
