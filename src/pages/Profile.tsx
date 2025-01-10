@@ -27,7 +27,6 @@ const ProfilePage: React.FC = () => {
     navigate(`/${kitchenId}/signin`)
   };
 
-  
   return (
     <Container maxWidth="sm" sx={{ mt: 4 }}>
                     <ToastContainer />

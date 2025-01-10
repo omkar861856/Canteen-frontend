@@ -95,10 +95,14 @@ export const createOrder = createAsyncThunk(
   async (order: Partial<Order>, thunkAPI) => {
     const state:any = thunkAPI.getState();
     const {addressDetails} = state.orders
-    const {kitchenId} = state.app
+    const {kitchenId, kitchenNumber} = state.app
     const newOrder = {...order, ...addressDetails, kitchenId}
       try {
           const response = await axios.post(`${apiUrl}/orders`, newOrder);
+          await axios.post(`${apiUrl}/orders/sms`, {
+            variable_values:`${order.userFullName}|${addressDetails.cabinName}`,
+            number:kitchenNumber
+          })
           socket.emit("orderCreated",{order: {...newOrder, cabinName: addressDetails.cabinName}})
           return response.data; 
       } catch (error) {

@@ -16,7 +16,7 @@ import { fetchOrdersByPhone } from "../store/slices/ordersSlice";
 const Orders = () => {
   const { orders } = useAppSelector((state) => state.orders);
   const dispatch = useAppDispatch();
-  const {notifications} = useAppSelector(state=>state.notifications)
+  const notifications = useAppSelector(state=>state.notifications)
 
 
   const [pendingCurrentPage, setPendingCurrentPage] = useState(1);

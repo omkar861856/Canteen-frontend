@@ -76,45 +76,53 @@ export default function Layout({ children }: LayoutProps) {
   const [socketConnection, setSocketConnection] = useState(false)
   const location = useLocation();
   const dispatch = useAppDispatch()
-  const [menuInvisible] = useState(false)
-  const [cartInvisible] = useState(false)
-  const [ordersInvisible] = useState(false)
+  const [_, setMenuInvisible] = useState(true)
+  const [cartInvisible, setCartInvisible] = useState(true)
+  const [ordersInvisible, setOrdersInvisible] = useState(true)
   const { isLoggedIn, phone } = useAppSelector(state => state.auth)
   const { kitchenStatus, kitchenNumber, kitchenId } = useAppSelector(state => state.app)
+  const notifications = useAppSelector(state => state.notifications)
+  const cart = useAppSelector(state => state.cart)
 
+  // get page endpoint - util
+  function getLastPathSegmentFromPathname(pathname: string): string {
+    // Split the pathname into segments
+    const pathSegments = pathname.split('/').filter(Boolean); // Remove empty segments
+    return pathSegments[pathSegments.length - 1] || ''; // Return the last segment or empty string
+  }
 
-  // const handleBadgeVisibility = () => {
-  //   setInvisible(!invisible);
-  // };
-
-  // function getFirstPathOrEndpoint(pathname:string) {
-  //   // Remove leading and trailing slashes, then split the pathname
-  //   const parts = pathname.replace(/^\/|\/$/g, '').split('/');
-  //   // Return the first part of the split array
-  //   return parts[0];
-  // }
-
-  // const result = getFirstPathOrEndpoint(location.pathname)
-
-  // console.log(result)
-
-  useEffect(()=>{
+  useEffect(() => {
     dispatch(fetchKitchenStatus(kitchenId))
-  },[])
+  }, [])
+
+  useEffect(() => {
+    // Check if there are notifications for each type
+    const hasMenuNotifications = notifications.some((notification) => notification.type === 'menu');
+    const hasOrderNotifications = notifications.some((notification) => notification.type === 'order');
+    const hasCartNotifications = notifications.some((notification) => notification.type === 'cart');
+
+    // Update visibility state based on the presence of notifications
+    setMenuInvisible(!hasMenuNotifications);
+    setOrdersInvisible(!hasOrderNotifications);
+    setCartInvisible(!hasCartNotifications);
+
+  }, [notifications]);
+
+  // for proper bottom nav
 
   useEffect(() => {
     // Use a switch statement to set the value based on the path
-    switch (location.pathname) {
-      case `/:${kitchenId}`:
+    switch (getLastPathSegmentFromPathname(location.pathname)) {
+      case `menu`:
         setValue(0);
         break;
-      case `/:${kitchenId}/cart`:
+      case `cart`:
         setValue(1);
         break;
-      case `/:${kitchenId}/orders`:
+      case `orders`:
         setValue(2);
         break;
-      case `/:${kitchenId}/profile`:
+      case `profile`:
         setValue(3);
         break;
       default:
@@ -123,21 +131,34 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [location.pathname]);
 
-  // // Show notification with sound
-  // const showNotification = (message: string) => {
-  //   if (Notification.permission === 'granted') {
-  //     const notification = new Notification("New Notification", {
-  //       body: message,
-  //       icon: 'path_to_your_icon/notification-icon.png', // Optional icon
-  //     });
+  //badge visibility
 
-  //     playNotificationSound(); // Play sound when notification appears
+  useEffect(() => {
+    // Check if there are notifications for each type
+    const hasOrderNotifications = notifications.some((notification) => notification.type === 'order');
 
-  //     notification.onclick = () => {
-  //       console.log("Notification clicked!");
-  //     };
-  //   }
-  // };
+    // Update visibility state based on the presence of notifications and the current route
+    const currentPath = getLastPathSegmentFromPathname(location.pathname)
+
+    // For "Orders" endpoint
+    if (currentPath !== `orders`) {
+      setOrdersInvisible(!hasOrderNotifications);
+    } else {
+      setOrdersInvisible(true); // Hide badge if on the Orders endpoint
+    }
+
+    // For "Cart" endpoint
+
+      const cartLength = cart.length !== 0
+      if (cartLength) {
+
+        setCartInvisible(false);
+
+      }
+     else {
+      setCartInvisible(true); // Hide badge if on the Cart endpoint
+    }
+  }, [notifications, location.pathname, kitchenId, cart]);
 
   // Clear stale local storage once per session
   useEffect(() => {
@@ -168,6 +189,7 @@ export default function Layout({ children }: LayoutProps) {
 
 
   useEffect(() => {
+
     const socketInstance = socketRef.current;
 
     // Register user on connection
@@ -177,23 +199,27 @@ export default function Layout({ children }: LayoutProps) {
     });
 
     // Listen for new menu items
-    socketInstance.on('menuItemCreated', (menuItem) => {
-      console.log('New menu item:', menuItem);
+    socketInstance.on('menuNotification', (menuItem) => {
+      console.log('Menu Notification:', menuItem);
       playNotificationSound(audioUrl)
+      setMenuInvisible(false)
+      dispatch(addNotification({ type: 'menu', data: menuItem }))
       // Update UI to display the new menu item
     });
 
     // Listen for order completion
-    socketInstance.on('orderCompleted', (data) => {
-      console.log('Order completed:', data);
+    socketInstance.on('orderNotification', (data) => {
+      console.log('Order Notification:', data);
       playNotificationSound(audioUrl)
       dispatch(addNotification({ type: "order", data: `Your order no ${data.orderId} completed` }))
+      setOrdersInvisible(false)
     });
 
     // Listen for kitchen status updates
-    socketInstance.on('kitchenStatusUpdated', (status) => {
+    socketInstance.on('kitchenStatus', (status) => {
       console.log('Kitchen status updated:', status);
       dispatch(setKitchenStatus(status))
+      dispatch(addNotification({ type: 'kitchenStatus', data: status }))
       // Update UI to reflect kitchen status
     });
 
@@ -202,9 +228,9 @@ export default function Layout({ children }: LayoutProps) {
       setSocketConnection(false)
 
       socketInstance.off("connect");
-      socketInstance.off("menuItemCreated");
-      socketInstance.off('orderCompleted');
-      socketInstance.off('kitchenStatusUpdated');
+      socketInstance.off("menuNotification");
+      socketInstance.off('orderNotification');
+      socketInstance.off('kitchenStatus');
 
 
     };
@@ -258,10 +284,8 @@ export default function Layout({ children }: LayoutProps) {
             setValue(newValue);
           }}
         >
-          <BottomNavigationAction onClick={() => navigate(`/${kitchenId}`)} label="Menu" icon={
-            <Badge color="primary" variant="dot" invisible={menuInvisible}>
+          <BottomNavigationAction onClick={() => navigate(`/${kitchenId}/menu`)} label="Menu" icon={
               <ImportContactsIcon />
-            </Badge>
           } />
           <BottomNavigationAction onClick={() => navigate(`/${kitchenId}/cart`)} label="Cart" icon={<Badge color="primary" variant="dot" invisible={cartInvisible}><ShoppingCartIcon /></Badge>} />
           <BottomNavigationAction onClick={() => navigate(`/${kitchenId}/orders`)} label="Orders" icon={<Badge color="primary" variant="dot" invisible={ordersInvisible}><RamenDiningIcon /></Badge>} />
@@ -276,8 +300,7 @@ export default function Layout({ children }: LayoutProps) {
 const NotificationIconWithMenu = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const notificationss = useAppSelector(state => state.notifications)
-  const notifications = notificationss.notifications
+  const notifications = useAppSelector(state => state.notifications)
   const dispatch = useAppDispatch();
 
   // const notifications = [

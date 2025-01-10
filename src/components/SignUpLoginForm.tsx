@@ -89,7 +89,7 @@ const SignUpLoginForm = () => {
 
             dispatch(setToken(res.data.token));
             dispatch(login(res.data.user));
-            navigate(`/${kitchenId}`);
+            navigate(`/${kitchenId}/menu`);
             toast.success('Signup successful!');
             reset();
         } catch (err) {

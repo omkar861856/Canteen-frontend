@@ -1,21 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-
 export interface Notification {
   type: String;
   data: String;
 }
 
-
-// Define the state structure
-export interface NotificationsState {
-  notifications: Notification[];
-}
-
 // Initial state
-const initialState: NotificationsState = {
-  notifications: [],
-};
+const initialState: Notification[] = []
 
 // Create the slice
 const notificationsSlice = createSlice({
@@ -24,11 +15,12 @@ const notificationsSlice = createSlice({
   reducers: {
     addNotification: (state, action: PayloadAction<Notification>) => {
       // Push the notification object to the notifications array
-      state.notifications.push(action.payload);
+      state.push(action.payload);
     },
     clearNotifications: (state) => {
       // Clear all notifications
-      state.notifications = [];
+      console.log(state)
+      return [];
     },
   },
 });

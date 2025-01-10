@@ -85,9 +85,9 @@ const Menu: React.FC = () => {
   const { kitchenStatus } = useAppSelector((state) => state.app); // Access kitchenStatus from the store
   const { inventory } = useAppSelector(state => state.menu)
   const dispatch = useAppDispatch()
+  const notifications = useAppSelector(state=>state.notifications)
 
 
-  
   useEffect(() => {
     if (kitchenStatus) {
       (async () => {
@@ -102,7 +102,7 @@ const Menu: React.FC = () => {
     } else {
       setLoading(false); // Ensure loading state ends even if kitchen is offline
     }
-  }, [kitchenStatus, dispatch]);
+  }, [kitchenStatus, dispatch, notifications]);
 
   if (loading) {
     return (
@@ -123,7 +123,7 @@ const Menu: React.FC = () => {
     {}
   );
 
- 
+
 
   return (
     <div>
@@ -158,11 +158,13 @@ const Menu: React.FC = () => {
                 {category}
               </Typography>
               <Grid container spacing={2}>
-                {categorizedInventory[category].map((item) => (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={item.itemId}>
-                    <MenuItem item={item} />
-                  </Grid>
-                ))}
+                {categorizedInventory[category]
+                  .filter((item) => item.availability) // Only include items with availability === true
+                  .map((item) => (
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={item.itemId}>
+                      <MenuItem item={item} />
+                    </Grid>
+                  ))}
               </Grid>
             </Box>
           ))}

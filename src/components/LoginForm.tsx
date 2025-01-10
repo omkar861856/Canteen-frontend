@@ -52,7 +52,7 @@ const LoginForm = () => {
             if (response.data.message === 'Valid Token') {
                 dispatch(login(response.data.user));
                 toast.success('Login successful!');
-                navigate(`/${kitchenId}`);
+                navigate(`/${kitchenId}/menu`);
                 return;
             }
 
@@ -96,7 +96,7 @@ const LoginForm = () => {
                 token: res.data.token,
                 isLoggedIn: true,
             }));
-            navigate(`/${kitchenId}`);
+            navigate(`/${kitchenId}/menu`);
             toast.success('Login successful!');
             reset();
         } catch (err) {

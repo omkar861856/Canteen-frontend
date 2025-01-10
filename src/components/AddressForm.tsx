@@ -35,6 +35,7 @@ const ModalFormWithVoiceNote = ({
   };
 
   const handleFormSubmit = async () => {
+    console.log(formDataRef.current)
     dispatch(setAddressDetails(formDataRef.current)); // Store address details in Redux
     displayRazorpay();
     onClose();

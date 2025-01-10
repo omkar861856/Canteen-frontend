@@ -27,7 +27,8 @@ const Cart = () => {
   const {firstName, lastName, phone} = useAppSelector(state=>state.auth)
   const userPhoneNumber = phone
   // const addressDetails = useAppSelector((state) => state.orders.addressDetails);
-  const {kitchenName, kitchenStatus, kitchenId} = useAppSelector(state=>state.app)
+  const {kitchenName, kitchenStatus, kitchenId, kitchenNumber} = useAppSelector(state=>state.app)
+  const {addressDetails} = useAppSelector(state=>state.orders)
 
   // for modal form
   const [open, setOpen] = useState(false);
@@ -131,11 +132,11 @@ const Cart = () => {
                 completedAt: null,
                 razorpayPaymentId: paymentData.razorpayPaymentId
               };
+              console.log(addressDetails, kitchenNumber)
               await dispatch(createOrder(newOrder))
                   dispatch(setAddressDetails(null))
                   dispatch(emptyCart())
-              navigate(`/${kitchenId}/orders`)
-
+                  navigate(`/${kitchenId}/orders`)
             } catch (error) {
               console.error('Error verifying payment:', error);
               alert('Payment verification failed. Please try again.');
