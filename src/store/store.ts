@@ -24,14 +24,18 @@ export const store = configureStore({
       serializableCheck: {
         // Ignore redux-persist actions
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
-        // Optionally ignore specific keys in the state
-        ignoredPaths: ['register'],
       },
     }),
 });
 
 // Persistor for PersistGate
 export const persistor = persistStore(store);
+
+persistor.subscribe(() => {
+  if (persistor.getState().bootstrapped) {
+    console.log('State has been rehydrated:', store.getState());
+  }
+});
 
 // RootState and AppDispatch types
 export type RootState = ReturnType<typeof rootReducer>;

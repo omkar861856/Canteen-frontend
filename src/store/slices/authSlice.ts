@@ -12,21 +12,25 @@ export interface AuthState {
     firstName: string | null;
     lastName: string | null;
     phone: string;
-    token: string | null;
+    token: string;
     isLoggedIn: boolean;
     otp: string | null;
     otpExpiresAt: string | null; // ISO string for OTP expiration time
+    browserFingerprint: string;
 }
 
 const initialState: AuthState = {
     firstName: null,
     lastName: null,
     phone: "",
-    token: null,
+    token: 'no token yet',
     isLoggedIn: false,
     otp: null,
     otpExpiresAt: null,
+    browserFingerprint:''
 };
+
+
 
 // Thunk to handle user signup
 export const signupUser = createAsyncThunk(
@@ -50,11 +54,11 @@ export const signupUser = createAsyncThunk(
 );
 
 // Thunk to handle user login
-export const loginUser = createAsyncThunk(
-    'auth/loginUser',
-    async (payload: { phone: string; otp: string }, thunkAPI) => {
+export const loginUserWithToken = createAsyncThunk(
+    'auth/loginUserWithToken',
+    async (payload: { token: string }, thunkAPI) => {
         try {
-            const response = await fetch(`${apiUrl}/auth/login`, {
+            const response = await fetch(`${apiUrl}/auth/sign-in/send-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -66,6 +70,7 @@ export const loginUser = createAsyncThunk(
         }
     }
 );
+
 
 export const logoutUser = createAsyncThunk<void, string>(
     'auth/logoutUser',
@@ -84,7 +89,6 @@ export const getIsLoggedInStatus = createAsyncThunk(
     async (phone, thunkAPI) => {
         try {
             const response = await axios.post(`${apiUrl}/auth/status`, { phone });
-            console.log(response)
             return response.data.isLoggedIn; // Assuming the API returns an object with the isLoggedIn field
         } catch (error) {
             return thunkAPI.rejectWithValue('Failed to fetch login status');
@@ -111,16 +115,9 @@ const authSlice = createSlice({
             state.token = action.payload.token;
             state.isLoggedIn = action.payload.isLoggedIn;
         },
-        clearLocalStorage: (state) => {
-            localStorage.clear(); // Clear all items in local storage
-            // Reset the Redux state to initial values
-            state.firstName = initialState.firstName;
-            state.lastName = initialState.lastName;
-            state.phone = initialState.phone;
-            state.token = initialState.token;
-            state.isLoggedIn = initialState.isLoggedIn;
-            state.otp = initialState.otp;
-            state.otpExpiresAt = initialState.otpExpiresAt;
+        clearLocalStorage: () => {
+            localStorage.clear();
+            return { ...initialState };
         },
     },
     extraReducers: (builder) => {
@@ -149,10 +146,10 @@ const authSlice = createSlice({
             })
 
             // Login logic
-            .addCase(loginUser.pending, () => {
+            .addCase(loginUserWithToken.pending, () => {
                 // Optionally handle loading state for login
             })
-            .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
+            .addCase(loginUserWithToken.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
                 state.firstName = action.payload.user.firstName;
                 state.lastName = action.payload.user.lastName;
                 state.phone = action.payload.user.phone;
@@ -161,12 +158,12 @@ const authSlice = createSlice({
                 state.otp = null;
                 state.otpExpiresAt = null;
             })
-            .addCase(loginUser.rejected, (state, action) => {
+            .addCase(loginUserWithToken.rejected, (state, action) => {
                 console.error(action.payload || 'Error during login');
                 state.firstName = null;
                 state.lastName = null;
                 state.phone = "";
-                state.token = null;
+                state.token = 'no token';
                 state.isLoggedIn = false;
             })
 

@@ -17,9 +17,8 @@ const notificationsSlice = createSlice({
       // Push the notification object to the notifications array
       state.push(action.payload);
     },
-    clearNotifications: (state) => {
+    clearNotifications: () => {
       // Clear all notifications
-      console.log(state)
       return [];
     },
   },

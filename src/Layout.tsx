@@ -26,9 +26,12 @@ import PhoneEnabledIcon from '@mui/icons-material/PhoneEnabled';
 import PhoneDisabledIcon from '@mui/icons-material/PhoneDisabled';
 import GoogleTranslate from './components/GoogleTranslate';
 import { cacheAudioFile } from './utils/cacheAudioFile';
+import axios from 'axios';
+import { login } from './store/slices/authSlice';
 
 const audioUrl = 'public/simple-notification-152054.mp3'
 cacheAudioFile(audioUrl);
+
 
 export const playNotificationSound = async (audioUrl: string) => {
   if ('caches' in window) {
@@ -71,7 +74,6 @@ export default function Layout({ children }: LayoutProps) {
   const [value, setValue] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const isInitialized = useRef(false); // To ensure logic runs only once per session
   const socketRef = useRef(socket);
   const [socketConnection, setSocketConnection] = useState(false)
   const location = useLocation();
@@ -83,6 +85,8 @@ export default function Layout({ children }: LayoutProps) {
   const { kitchenStatus, kitchenNumber, kitchenId } = useAppSelector(state => state.app)
   const notifications = useAppSelector(state => state.notifications)
   const cart = useAppSelector(state => state.cart)
+  const {token} = useAppSelector(state=>state.auth)
+
 
   // get page endpoint - util
   function getLastPathSegmentFromPathname(pathname: string): string {
@@ -91,9 +95,29 @@ export default function Layout({ children }: LayoutProps) {
     return pathSegments[pathSegments.length - 1] || ''; // Return the last segment or empty string
   }
 
+  // login user after refresh
+
   useEffect(() => {
-    dispatch(fetchKitchenStatus(kitchenId))
-  }, [])
+    if (token!=='no token' || null || undefined) {
+      (async () => {
+        // send token to backend for auto login
+        const response = await axios.post(`${apiUrl}/auth/token-login`, {token})
+        console.log(response)
+        if (response.data.message === 'Valid Token') {
+          dispatch(login(response.data.user));
+          navigate(`/${kitchenId}/menu`);
+          return;
+      }
+      })();
+    }
+  }, [token]);
+  
+
+  useEffect(() => {
+    if (kitchenId) {
+      dispatch(fetchKitchenStatus(kitchenId));
+    }
+  }, [kitchenId, dispatch]);
 
   useEffect(() => {
     // Check if there are notifications for each type
@@ -160,27 +184,7 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [notifications, location.pathname, kitchenId, cart]);
 
-  // Clear stale local storage once per session
-  useEffect(() => {
-    if (!isInitialized.current) {
-      isInitialized.current = true;
-
-      // Clear local storage only if not cleared for this session
-      if (!sessionStorage.getItem("localStorageCleared")) {
-        localStorage.clear();
-        sessionStorage.setItem("localStorageCleared", "true");
-        console.log("Local storage cleared once for this session.");
-      }
-    }
-
-    return () => {
-      console.log("Layout unmounting (clean-up logic if required).");
-    };
-  }, []);
-
   // to fetch the kitchen state 
-
-
   useEffect(() => {
     if (ref.current) {
       ref.current.ownerDocument.body.scrollTop = 0;
@@ -276,7 +280,10 @@ export default function Layout({ children }: LayoutProps) {
         </Marquee>
       </div>
       <div id='layout-children'>{children}</div>
-      <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
+      {
+        isLoggedIn
+        ?
+        <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
         <BottomNavigation
           showLabels
           value={value}
@@ -293,6 +300,10 @@ export default function Layout({ children }: LayoutProps) {
             <AccountBoxIcon color={isLoggedIn ? "success" : undefined} />} />
         </BottomNavigation>
       </Paper>
+        :
+        null
+      }
+      
     </Box>
   );
 }
