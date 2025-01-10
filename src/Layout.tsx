@@ -120,16 +120,19 @@ export default function Layout({ children }: LayoutProps) {
   }, [kitchenId, dispatch]);
 
   useEffect(() => {
-    // Check if there are notifications for each type
-    const hasMenuNotifications = notifications.some((notification) => notification.type === 'menu');
-    const hasOrderNotifications = notifications.some((notification) => notification.type === 'order');
-    const hasCartNotifications = notifications.some((notification) => notification.type === 'cart');
-
-    // Update visibility state based on the presence of notifications
-    setMenuInvisible(!hasMenuNotifications);
-    setOrdersInvisible(!hasOrderNotifications);
-    setCartInvisible(!hasCartNotifications);
-
+    const visibilityState = notifications.reduce(
+      (acc, notification) => {
+        if (notification.type === 'menu') acc.menu = true;
+        if (notification.type === 'order') acc.order = true;
+        if (notification.type === 'cart') acc.cart = true;
+        return acc;
+      },
+      { menu: false, order: false, cart: false }
+    );
+  
+    setMenuInvisible(!visibilityState.menu);
+    setOrdersInvisible(!visibilityState.order);
+    setCartInvisible(!visibilityState.cart);
   }, [notifications]);
 
   // for proper bottom nav
