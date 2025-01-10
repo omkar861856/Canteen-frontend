@@ -5,7 +5,7 @@ import { useAppDispatch } from "../store/hooks/hooks";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { logoutUser } from "../store/slices/authSlice";
+import { clearLocalStorage, logoutUser } from "../store/slices/authSlice";
 
 const ProfilePage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -22,6 +22,7 @@ const ProfilePage: React.FC = () => {
   // Logout handler
   const handleLogout = async () => {
     await dispatch(logoutUser(phone));
+    dispatch(clearLocalStorage())
     handleResetStore()
     toast.success('Logoutsuccessful!');
     navigate(`/${kitchenId}/signin`)
