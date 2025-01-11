@@ -7,22 +7,10 @@ import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 import ProfilePage from './pages/Profile';
 import ErrorBoundary from './ErrorBoundary';
-import { useEffect } from 'react';
-import { persistor } from './store/store';
+
 
 const App = () => {
 
-  // Function to purge persisted state
-const handlePurge = () => {
-  persistor.purge().then(() => {
-    console.log('Persisted state cleared');
-  });
-};
-
-
-useEffect(()=>{
-  handlePurge();
-},[])
 
   return (
     <Routes>
