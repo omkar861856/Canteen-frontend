@@ -78,13 +78,8 @@ export default function Layout({ children }: LayoutProps) {
   const [socketConnection, setSocketConnection] = useState(false)
   const location = useLocation();
   const dispatch = useAppDispatch()
-  const [_, setMenuInvisible] = useState(true)
-  const [cartInvisible, setCartInvisible] = useState(true)
-  const [ordersInvisible, setOrdersInvisible] = useState(true)
   const { isLoggedIn, phone } = useAppSelector(state => state.auth)
   const { kitchenStatus, kitchenNumber, kitchenId } = useAppSelector(state => state.app)
-  const notifications = useAppSelector(state => state.notifications)
-  const cart = useAppSelector(state => state.cart)
   const {token} = useAppSelector(state=>state.auth)
 
 
@@ -166,32 +161,32 @@ useEffect(() => {
 
   //badge visibility
 
-  useEffect(() => {
-    // Check if there are notifications for each type
-    const hasOrderNotifications = notifications.some((notification) => notification.type === 'order');
+  // useEffect(() => {
+  //   // Check if there are notifications for each type
+  //   const hasOrderNotifications = notifications.some((notification) => notification.type === 'order');
 
-    // Update visibility state based on the presence of notifications and the current route
-    const currentPath = getLastPathSegmentFromPathname(location.pathname)
+  //   // Update visibility state based on the presence of notifications and the current route
+  //   const currentPath = getLastPathSegmentFromPathname(location.pathname)
 
-    // For "Orders" endpoint
-    if (currentPath !== `orders`) {
-      setOrdersInvisible(!hasOrderNotifications);
-    } else {
-      setOrdersInvisible(true); // Hide badge if on the Orders endpoint
-    }
+  //   // For "Orders" endpoint
+  //   if (currentPath !== `orders`) {
+  //     setOrdersInvisible(!hasOrderNotifications);
+  //   } else {
+  //     setOrdersInvisible(true); // Hide badge if on the Orders endpoint
+  //   }
 
-    // For "Cart" endpoint
+  //   // For "Cart" endpoint
 
-      const cartLength = cart.length !== 0
-      if (cartLength) {
+  //     const cartLength = cart.length !== 0
+  //     if (cartLength) {
 
-        setCartInvisible(false);
+  //       setCartInvisible(false);
 
-      }
-     else {
-      setCartInvisible(true); // Hide badge if on the Cart endpoint
-    }
-  }, [notifications, location.pathname, kitchenId, cart]);
+  //     }
+  //    else {
+  //     setCartInvisible(true); // Hide badge if on the Cart endpoint
+  //   }
+  // }, [notifications, location.pathname, kitchenId, cart]);
 
   // to fetch the kitchen state 
   useEffect(() => {
@@ -215,7 +210,6 @@ useEffect(() => {
     socketInstance.on('menuNotification', (menuItem) => {
       console.log('Menu Notification:', menuItem);
       playNotificationSound(audioUrl)
-      setMenuInvisible(false)
       dispatch(addNotification({ type: 'menu', data: menuItem }))
       // Update UI to display the new menu item
     });
@@ -225,7 +219,6 @@ useEffect(() => {
       console.log('Order Notification:', data);
       playNotificationSound(audioUrl)
       dispatch(addNotification({ type: "order", data: `Your order no ${data.orderId} completed` }))
-      setOrdersInvisible(false)
     });
 
     // Listen for kitchen status updates
@@ -303,8 +296,8 @@ useEffect(() => {
           <BottomNavigationAction onClick={() => navigate(`/${kitchenId}/menu`)} label="Menu" icon={
               <ImportContactsIcon />
           } />
-          <BottomNavigationAction onClick={() => navigate(`/${kitchenId}/cart`)} label="Cart" icon={<Badge color="primary" variant="dot" invisible={cartInvisible}><ShoppingCartIcon /></Badge>} />
-          <BottomNavigationAction onClick={() => navigate(`/${kitchenId}/orders`)} label="Orders" icon={<Badge color="primary" variant="dot" invisible={ordersInvisible}><RamenDiningIcon /></Badge>} />
+          <BottomNavigationAction onClick={() => navigate(`/${kitchenId}/cart`)} label="Cart" icon={<Badge color="primary" variant="dot" invisible={true}><ShoppingCartIcon /></Badge>} />
+          <BottomNavigationAction onClick={() => navigate(`/${kitchenId}/orders`)} label="Orders" icon={<Badge color="primary" variant="dot" invisible={true}><RamenDiningIcon /></Badge>} />
           <BottomNavigationAction onClick={() => navigate(`/${kitchenId}/profile`)} label="Profile" icon={
             <AccountBoxIcon color={isLoggedIn ? "success" : undefined} />} />
         </BottomNavigation>
