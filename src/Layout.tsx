@@ -95,6 +95,12 @@ export default function Layout({ children }: LayoutProps) {
     return pathSegments[pathSegments.length - 1] || ''; // Return the last segment or empty string
   }
 
+useEffect(() => {
+  if (isLoggedIn) {
+    navigate(`/${kitchenId}/menu`);
+  }
+}, []);
+
   // login user after refresh
 
   useEffect(() => {
@@ -119,21 +125,21 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [kitchenId, dispatch]);
 
-  useEffect(() => {
-    const visibilityState = notifications.reduce(
-      (acc, notification) => {
-        if (notification.type === 'menu') acc.menu = true;
-        if (notification.type === 'order') acc.order = true;
-        if (notification.type === 'cart') acc.cart = true;
-        return acc;
-      },
-      { menu: false, order: false, cart: false }
-    );
+  // useEffect(() => {
+  //   const visibilityState = notifications.reduce(
+  //     (acc, notification) => {
+  //       if (notification.type === 'menu') acc.menu = true;
+  //       if (notification.type === 'order') acc.order = true;
+  //       if (notification.type === 'cart') acc.cart = true;
+  //       return acc;
+  //     },
+  //     { menu: false, order: false, cart: false }
+  //   );
   
-    setMenuInvisible(!visibilityState.menu);
-    setOrdersInvisible(!visibilityState.order);
-    setCartInvisible(!visibilityState.cart);
-  }, [notifications]);
+  //   setMenuInvisible(!visibilityState.menu);
+  //   setOrdersInvisible(!visibilityState.order);
+  //   setCartInvisible(!visibilityState.cart);
+  // }, [notifications]);
 
   // for proper bottom nav
 
